@@ -1,14 +1,16 @@
+
+from django.utils import timezone
 from django.db import models
 
 
 class Concerts(models.Model):
     title = models.CharField(max_length=100)
     singer = models.CharField(max_length=100)
-    ticketsID = models.AutoField
-    date = models.DateTimeField
-    placeId = models.IntegerField
-    typeId = models.IntegerField
-    singerVoiceId = models.IntegerField
+    ticketsId = models.IntegerField(default=0)
+    date = models.DateTimeField(default=timezone.now)
+    placeId = models.IntegerField(default=0)
+    typeId = models.IntegerField(default=0)
+    singerVoiceId = models.IntegerField(default=0)
     concertName = models.CharField(max_length=100, null=True)
     composer = models.CharField(max_length=100, null=True)
     wayHint = models.CharField(max_length=100, null=True)

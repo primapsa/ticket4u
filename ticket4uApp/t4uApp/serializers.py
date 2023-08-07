@@ -5,5 +5,5 @@ from .models import Concerts
 class ConcertsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Concerts
-        fields = ('pk', 'title', 'singer', 'ticketsID', 'placeId', 'typeId', 'singerVoiceId', 'concertName', 'composer',
-                  'wayHint', 'headliner', 'censor')
+        fields = ('id', 'title', 'singer', 'ticketsId', 'date', 'placeId', 'typeId', 'singerVoiceId', 'concertName',
+                  'composer', 'wayHint', 'headliner', 'censor')
