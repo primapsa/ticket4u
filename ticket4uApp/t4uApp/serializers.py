@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Concerts, Place, ConcertType, SingerVoice, Cart
+from .models import Concerts, Place, ConcertType, SingerVoice, Cart, Promocode
 
 
 class ConcertsSerializer(serializers.ModelSerializer):
@@ -39,4 +39,9 @@ class SingerVoiceSerializer(serializers.ModelSerializer):
 class CartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
+        fields = '__all__'
+
+class PromocodeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Promocode
         fields = '__all__'
