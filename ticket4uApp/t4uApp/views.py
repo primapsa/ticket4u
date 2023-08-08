@@ -61,3 +61,32 @@ def singer_voice(request):
     serializer = SingerVoiceSerializer(data, context={'request': request}, many=True)
     return Response(serializer.data)
 
+
+@api_view(['GET', 'POST'])
+def cart_list(request):
+    if request.method == 'GET':
+        data = Cart.objects.all()
+        serializer = CartSerializer(data, context={'request': request}, many=True)
+        return Response(serializer.data)
+    if request.method == 'POST':
+        serializer = ConcertsSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status.HTTP_201_CREATED)
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['PUT', 'DELETE'])
+def cart_change(request, pk):
+    try:
+        record = Cart.objects.get(pk=pk)
+    except:
+        return Response(status.HTTP_404_NOT_FOUND)
+    if request.method == 'DELETE':
+        record.delete()
+    if request.method == 'PUT':
+        serializer = CartSerializer(record, data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+    return Response(status.HTTP_204_NO_CONTENT)
