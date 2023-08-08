@@ -18,7 +18,7 @@ def concert_list(request):
     if request.method == 'GET':
         data = Concerts.objects.all()
         serializer = ConcertsSerializer(data, context={'request': request}, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status.HTTP_200_OK)
 
     if request.method == 'POST':
 
@@ -52,14 +52,14 @@ def concert_list(request):
 def concert_type(request):
     data = ConcertType.objects.all()
     serializer = ConcertTypeSerializer(data, context={'request': request}, many=True)
-    return Response(serializer.data)
+    return Response(serializer.data, status.HTTP_200_OK)
 
 
 @api_view(['GET'])
 def singer_voice(request):
     data = SingerVoice.objects.all()
     serializer = SingerVoiceSerializer(data, context={'request': request}, many=True)
-    return Response(serializer.data)
+    return Response(serializer.data, status.HTTP_200_OK)
 
 
 @api_view(['GET', 'POST'])
@@ -67,7 +67,7 @@ def cart_list(request):
     if request.method == 'GET':
         data = Cart.objects.all()
         serializer = CartSerializer(data, context={'request': request}, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status.HTTP_200_OK)
     if request.method == 'POST':
         serializer = ConcertsSerializer(data=request.data)
         if serializer.is_valid():
@@ -84,9 +84,42 @@ def cart_change(request, pk):
         return Response(status.HTTP_404_NOT_FOUND)
     if request.method == 'DELETE':
         record.delete()
+        return Response(status.HTTP_204_NO_CONTENT)
     if request.method == 'PUT':
         serializer = CartSerializer(record, data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
+            return Response(serializer.data, status.HTTP_200_OK)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
-    return Response(status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET', 'POST'])
+def promocode_list(request):
+    if request.method == 'GET':
+        promocodes = Promocode.objects.all()
+        serializer = PromocodeSerializer(promocodes, context={'request': request}, many=True)
+        return Response(serializer.data, status.HTTP_200_OK)
+
+    if request.method == 'POST':
+        serializer = PromocodeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status.HTTP_201_CREATED)
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['PUT', 'DELETE'])
+def promocode_change(request, pk):
+    try:
+        record = Promocode.objects.get(pk=pk)
+    except:
+        return Response(status.HTTP_404_NOT_FOUND)
+    if request.method == 'DELETE':
+        record.delete()
+        return Response(status.HTTP_204_NO_CONTENT)
+    if request.method == 'PUT':
+        serializer = PromocodeSerializer(record, data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status.HTTP_200_OK)
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
