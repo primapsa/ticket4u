@@ -6,7 +6,7 @@ class Concerts(models.Model):
     title = models.CharField(max_length=100)
     singer = models.CharField(max_length=100)
     date = models.DateTimeField(default=timezone.now)
-    placeId = models.IntegerField()
+    placeId = models.IntegerField(default=0)
     typeId = models.IntegerField()
     singerVoiceId = models.IntegerField(default=0)
     concertName = models.CharField(max_length=100, null=True)
@@ -22,7 +22,7 @@ class Concerts(models.Model):
 class Tickets(models.Model):
     concertId = models.IntegerField()
     userId = models.IntegerField(default=0)
-    statusId = models.IntegerField(default=0)
+    statusId = models.IntegerField(default=1)
     promocodeId = models.IntegerField(default=0)
     price = models.FloatField()
     finalPrice = models.FloatField()
