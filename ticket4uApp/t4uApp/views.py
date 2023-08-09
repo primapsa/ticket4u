@@ -1,12 +1,14 @@
+from django.db import connection
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-
+from django.core import serializers as ssrs
 from rest_framework import status
 
-from .models import Concerts, Tickets
+from .models import Concerts, Tickets, ConcertType
 from .serializers import *
 from .utils import make_bulk
+from django.http import JsonResponse
 
 
 @api_view(['GET', 'POST'])
@@ -16,9 +18,20 @@ def concert_list(request):
     # pl = myr.pop('place')
     # return Response([pl,myr] )
     if request.method == 'GET':
-        data = Concerts.objects.all()
-        serializer = ConcertsSerializer(data, context={'request': request}, many=True)
+        # data = Concerts.objects.all()
+        # data = Concerts.objects.all().values_list('singer').union(ConcertType.objects.all().values_list('title'))
+        # for record in Concerts.objects.select_related('typeId'):
+        #     print (type (record))
+        #     print(record.singer, record.title, record.typeId.title)
+        data = Concerts.objects.select_related('typeId').values('singer', 'title', 'typeId__title')
+        # print(data[0])
+        # print(connection.queries)
+        # print(data[0].singer)
+        # serializers.serialize('json',  Car.objects.all().select_related('dealership'))
+        serializer = ConcertsSerializerEx(data, context={'request': request}, many=True)
+        # return JsonResponse(data, safe=False)
         return Response(serializer.data, status.HTTP_200_OK)
+        # return Response(ssrs.serialize('json', Concerts.objects.select_related('typeId').filter(id=1)))
 
     if request.method == 'POST':
 
@@ -34,7 +47,7 @@ def concert_list(request):
                 if concerts_serializer.is_valid():
                     result_concerts = concerts_serializer.save()
                     tickets = make_bulk(int(concerts['tickets']),
-                                        Tickets(concertId=result_concerts.pk, price=concerts['price'],
+                                        Tickets(concertId=result_concerts, price=concerts['price'],
                                                 finalPrice=concerts['price']))
                     Tickets.objects.bulk_create(tickets)
                     return Response(concerts_serializer.data, status=status.HTTP_201_CREATED)
@@ -123,3 +136,8 @@ def promocode_change(request, pk):
             serializer.save()
             return Response(serializer.data, status.HTTP_200_OK)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+def user(request):
+    return Response(request.user)
