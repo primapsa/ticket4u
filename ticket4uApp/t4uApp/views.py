@@ -11,6 +11,17 @@ from .utils import make_bulk
 from django.http import JsonResponse
 
 
+@api_view(['GET'])
+def concert_filter(request):
+    search = request.GET.get('q')
+    data = (Concerts.objects.filter(title__startswith=search).select_related('typeId', 'placeId', 'singerVoiceId')
+            .values('singer', 'title', 'date', 'typeId__title', 'placeId__latitude', 'placeId__longitude',
+                    'singerVoiceId__title'))
+    serializer = ConcertsSerializerEx(data, context={'request': request}, many=True)
+    return Response(serializer.data, status.HTTP_200_OK)
+
+
+
 @api_view(['GET', 'POST'])
 def concert_list(request):
     # print(request)
@@ -20,10 +31,16 @@ def concert_list(request):
     if request.method == 'GET':
         # data = Concerts.objects.all()
         # data = Concerts.objects.all().values_list('singer').union(ConcertType.objects.all().values_list('title'))
-        # for record in Concerts.objects.select_related('typeId'):
-        #     print (type (record))
-        #     print(record.singer, record.title, record.typeId.title)
-        data = Concerts.objects.select_related('typeId').values('singer', 'title', 'typeId__title')
+        # dt = Concerts.objects.select_related('typeId')
+        # print (type (dt))
+        # concert_obj = {}
+        # concert_list = []
+        # for record in dt:
+        #     obj = record.copy()
+        # print(record.singer, record.title, record.typeId.title)
+        data = (Concerts.objects.select_related('typeId', 'placeId', 'singerVoiceId')
+                .values('singer', 'title', 'date', 'typeId__title', 'placeId__latitude', 'placeId__longitude',
+                        'singerVoiceId__title'))
         # print(data[0])
         # print(connection.queries)
         # print(data[0].singer)
@@ -32,6 +49,7 @@ def concert_list(request):
         # return JsonResponse(data, safe=False)
         return Response(serializer.data, status.HTTP_200_OK)
         # return Response(ssrs.serialize('json', Concerts.objects.select_related('typeId').filter(id=1)))
+        # return Response('11')
 
     if request.method == 'POST':
 
