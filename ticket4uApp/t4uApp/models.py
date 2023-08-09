@@ -6,13 +6,23 @@ class ConcertType(models.Model):
     title = models.CharField(max_length=100)
 
 
+class Place(models.Model):
+    title = models.CharField(max_length=100)
+    latitude = models.CharField(max_length=100)
+    longitude = models.CharField(max_length=100)
+
+
+class SingerVoice(models.Model):
+    title = models.CharField(max_length=100)
+
+
 class Concerts(models.Model):
     title = models.CharField(max_length=100)
     singer = models.CharField(max_length=100)
     date = models.DateTimeField(default=timezone.now)
-    placeId = models.IntegerField(default=0)
-    typeId = models.ForeignKey(ConcertType, default=0, on_delete=models.SET_DEFAULT, related_name='types')
-    singerVoiceId = models.IntegerField(default=0)
+    placeId = models.ForeignKey(Place, default=0, on_delete=models.SET_DEFAULT)
+    typeId = models.ForeignKey(ConcertType, default=0, on_delete=models.SET_DEFAULT)
+    singerVoiceId = models.ForeignKey(SingerVoice, default=0, on_delete=models.SET_DEFAULT)
     concertName = models.CharField(max_length=100, null=True)
     composer = models.CharField(max_length=100, null=True)
     wayHint = models.CharField(max_length=100, null=True)
@@ -20,7 +30,7 @@ class Concerts(models.Model):
     censor = models.CharField(max_length=100, null=True)
 
     def __str__(self):
-        return self.title
+        return self.singer
 
 
 class TicketStatus(models.Model):
@@ -41,16 +51,6 @@ class Tickets(models.Model):
 
     price = models.FloatField()
     finalPrice = models.FloatField()
-
-
-class Place(models.Model):
-    title = models.CharField(max_length=100)
-    latitude = models.CharField(max_length=100)
-    longitude = models.CharField(max_length=100)
-
-
-class SingerVoice(models.Model):
-    title = models.CharField(max_length=100)
 
 
 class Cart(models.Model):
