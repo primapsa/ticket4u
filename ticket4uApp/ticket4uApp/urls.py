@@ -22,4 +22,7 @@ from t4uApp import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     re_path(r'^api/concerts/$', views.concert_list),
+    re_path(r'^api/user/$', views.user),
+    re_path(r'^api/filter/$', views.concert_filter),
+    re_path(r'^api/type/$', views.concert_type)
 ]
