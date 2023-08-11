@@ -24,8 +24,6 @@ SECRET_KEY = 'django-insecure-)++1@e$9&9nn9*ip^o2k1+k1mbh=hn#2^-$cr4vq2!i%e9re-g
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -37,15 +35,15 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     't4uApp',
     'rest_framework',
-    'corsheaders',
+    'corsheaders'
 
 ]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -121,3 +119,4 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ORIGIN_ALLOW_ALL = True
+ALLOWED_HOSTS = ['*']
