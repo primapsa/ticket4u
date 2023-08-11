@@ -4,9 +4,10 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from django.core import serializers as ssrs
 from rest_framework import status
-
+from django.core.paginator import Paginator
 from .models import Concerts, Tickets, ConcertType
 from .serializers import *
+from .setting import page
 from .utils import make_bulk
 from django.http import JsonResponse
 
@@ -19,7 +20,6 @@ def concert_filter(request):
                     'singerVoiceId__title'))
     serializer = ConcertsSerializerEx(data, context={'request': request}, many=True)
     return Response(serializer.data, status.HTTP_200_OK)
-
 
 
 @api_view(['GET', 'POST'])
@@ -38,15 +38,23 @@ def concert_list(request):
         # for record in dt:
         #     obj = record.copy()
         # print(record.singer, record.title, record.typeId.title)
-        data = (Concerts.objects.select_related('typeId', 'placeId', 'singerVoiceId')
-                .values('singer', 'title', 'date', 'typeId__title', 'placeId__latitude', 'placeId__longitude',
-                        'singerVoiceId__title'))
+        per_page = request.GET.get("count") or page['itemsPerPage']
+        page_number = request.GET.get("page") or page['default']
+        keyword = request.GET.get("keyword") or ''
+
+        concerts = (
+            Concerts.objects.filter(title__startswith=keyword).select_related('typeId', 'placeId', 'singerVoiceId')
+            .values('singer', 'title', 'date', 'typeId__title', 'placeId__latitude', 'placeId__longitude',
+                    'singerVoiceId__title'))
+
+        paginator = Paginator(concerts, per_page)
+        paged_concert = paginator.get_page(page_number)
         # print(data[0])
         # print(connection.queries)
         # print(data[0].singer)
         # serializers.serialize('json',  Car.objects.all().select_related('dealership'))
-        serializer = ConcertsSerializerEx(data, context={'request': request}, many=True)
-        # return JsonResponse(data, safe=False)
+        serializer = ConcertsSerializerEx(paged_concert, context={'request': request}, many=True)
+
         return Response(serializer.data, status.HTTP_200_OK)
         # return Response(ssrs.serialize('json', Concerts.objects.select_related('typeId').filter(id=1)))
         # return Response('11')
@@ -73,10 +81,6 @@ def concert_list(request):
                     return Response(concerts_serializer.errors, status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
-        # if serializer.is_valid():
-        #     serializer.save()
-        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-        # return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
