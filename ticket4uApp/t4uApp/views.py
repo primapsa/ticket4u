@@ -176,7 +176,8 @@ def promocode_list(request):
     if request.method == 'GET':
         promocodes = Promocode.objects.all()
         serializer = PromocodeSerializer(promocodes, context={'request': request}, many=True)
-        return Response(serializer.data, status.HTTP_200_OK)
+        output = {'data': serializer.data, 'total': promocodes.count()}
+        return Response(output, status.HTTP_200_OK)
 
     if request.method == 'POST':
         serializer = PromocodeSerializer(data=request.data)
@@ -201,5 +202,3 @@ def promocode_change(request, pk):
             serializer.save()
             return Response(serializer.data, status.HTTP_200_OK)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
-
-
