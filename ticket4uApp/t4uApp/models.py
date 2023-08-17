@@ -44,6 +44,7 @@ class TicketStatus(models.Model):
 
 class Promocode(models.Model):
     title = models.CharField(max_length=100)
+    date = models.DateTimeField(default=timezone.now)
     concertId = models.IntegerField()
     discount = models.IntegerField()
 
