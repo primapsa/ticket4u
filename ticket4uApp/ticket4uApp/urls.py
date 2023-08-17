@@ -16,13 +16,17 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, re_path
+from django.conf import settings
+from django.conf.urls.static import static
 
 from t4uApp import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    re_path(r'^api/concerts/$', views.concert_list),
-    re_path(r'^api/user/$', views.user),
-    re_path(r'^api/filter/$', views.concert_filter),
-    re_path(r'^api/type/$', views.concert_type)
-]
+                  path('admin/', admin.site.urls),
+                  re_path(r'^api/concerts/$', views.concert_list),
+                  re_path(r'^api/type/$', views.concert_type),
+                  re_path(r'^api/voice/$', views.singer_voice),
+                  path('api/concerts/<str:pk>', views.concert),
+                  path('api/promocodes/', views.promocode_list),
+
+              ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
