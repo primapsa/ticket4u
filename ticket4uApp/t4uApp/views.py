@@ -1,25 +1,13 @@
-from django.db import connection
-from django.shortcuts import render
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from django.core import serializers as ssrs
-from rest_framework import status
 from django.core.paginator import Paginator
-from .models import Concerts, Tickets, ConcertType
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+from .models import Tickets
 from .serializers import *
 from .setting import page
 from .utils import make_bulk
-from django.http import JsonResponse
-
-
-@api_view(['GET'])
-def concert_filter(request):
-    search = request.GET.get('q')
-    data = (Concerts.objects.filter(title__startswith=search).select_related('typeId', 'placeId', 'singerVoiceId')
-            .values('singer', 'title', 'date', 'typeId__title', 'placeId__latitude', 'placeId__longitude',
-                    'singerVoiceId__title'))
-    serializer = ConcertsSerializerEx(data, context={'request': request}, many=True)
-    return Response(serializer.data, status.HTTP_200_OK)
 
 
 @api_view(['GET', 'POST'])
@@ -44,7 +32,8 @@ def concert_list(request):
 
         concerts = (
             Concerts.objects.filter(title__startswith=keyword).select_related('typeId', 'placeId', 'singerVoiceId')
-            .values('singer', 'title', 'date', 'typeId__title', 'placeId__latitude', 'placeId__longitude',
+            .values('id', 'title', 'date', 'typeId__title', 'placeId__address', 'placeId__latitude',
+                    'placeId__longitude',
                     'singerVoiceId__title'))
 
         paginator = Paginator(concerts, per_page)
@@ -53,24 +42,52 @@ def concert_list(request):
         # print(connection.queries)
         # print(data[0].singer)
         # serializers.serialize('json',  Car.objects.all().select_related('dealership'))
-        serializer = ConcertsSerializerEx(paged_concert, context={'request': request}, many=True)
 
-        return Response(serializer.data, status.HTTP_200_OK)
+        serializer = ConcertsSerializerEx(paged_concert, context={'request': request}, many=True)
+        output = {'data': serializer.data, 'total': concerts.count()}
+        return Response(output, status.HTTP_200_OK)
         # return Response(ssrs.serialize('json', Concerts.objects.select_related('typeId').filter(id=1)))
         # return Response('11')
 
     if request.method == 'POST':
 
-        serializer = ConcertsExtendedSerializer(data=request.data)
+        # serializer = ConcertsExtendedSerializer2(data=request.data)
+        # if serializer.is_valid():
+        #     concerts = request.data
+        #     place = concerts.pop('place')
+        #     place_serializer = PlaceSerializer(data=place)
+        #     if place_serializer.is_valid():
+        #         place_result = place_serializer.save()
+        #         concerts['placeId'] = place_result.pk
+        #         concerts_serializer = ConcertsSerializer(data=concerts)
+        #         if concerts_serializer.is_valid():
+        #             result_concerts = concerts_serializer.save()
+        #             tickets = make_bulk(int(concerts['tickets']),
+        #                                 Tickets(concertId=result_concerts, price=concerts['price'],
+        #                                         finalPrice=concerts['price']))
+        #             Tickets.objects.bulk_create(tickets)
+        #             return Response(concerts_serializer.data, status=status.HTTP_201_CREATED)
+        #         else:
+        #             return Response(concerts_serializer.errors, status.HTTP_400_BAD_REQUEST)
+        serializer = ConcertsExtendedSerializer2(data=request.data)
+        print(request.data)
         if serializer.is_valid():
-            concerts = request.data
-            place = concerts.pop('place')
-            place_serializer = PlaceSerializer(data=place)
+            concerts = request.data.copy()
+            # place = concerts.pop('place')
+            print('step1')
+            new_place = {'address': concerts['address'], 'latitude': concerts['latitude'],
+                         'longitude': concerts['longitude']}
+            # qdict = QueryDict('', mutable=True)
+            # qdict.update(MultiValueDict(new_place))
+            # print(qdict['address'])
+            place_serializer = PlaceSerializer(data=new_place)
             if place_serializer.is_valid():
+                print('step2')
                 place_result = place_serializer.save()
                 concerts['placeId'] = place_result.pk
                 concerts_serializer = ConcertsSerializer(data=concerts)
                 if concerts_serializer.is_valid():
+                    print('step3')
                     result_concerts = concerts_serializer.save()
                     tickets = make_bulk(int(concerts['tickets']),
                                         Tickets(concertId=result_concerts, price=concerts['price'],
@@ -79,8 +96,34 @@ def concert_list(request):
                     return Response(concerts_serializer.data, status=status.HTTP_201_CREATED)
                 else:
                     return Response(concerts_serializer.errors, status.HTTP_400_BAD_REQUEST)
-
+        print(serializer.errors)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['PUT', 'DELETE', 'GET'])
+def concert(request, pk):
+    try:
+        record = Concerts.objects.get(pk=pk)
+    except:
+        return Response(status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'DELETE':
+        record.delete()
+        return Response(status.HTTP_204_NO_CONTENT)
+    if request.method == 'PUT':
+        serializer = ConcertsExtendedSerializer(record, data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status.HTTP_200_OK)
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+    if request.method == 'GET':
+        concert = (
+            Concerts.objects.filter(id=pk).select_related('typeId', 'placeId', 'singerVoiceId')
+            .values('id', 'title', 'date', 'placeId__address', 'typeId__title', 'placeId__latitude',
+                    'placeId__longitude',
+                    'singerVoiceId__title'))
+        serializer = ConcertsSerializerEx(concert, context={'request': request}, many=True)
+        return Response(serializer.data, status.HTTP_200_OK)
 
 
 @api_view(['GET'])
@@ -160,6 +203,3 @@ def promocode_change(request, pk):
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET'])
-def user(request):
-    return Response(request.user)
