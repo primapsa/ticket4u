@@ -1,8 +1,6 @@
-import uuid
-
-from django.utils import timezone
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-
+from django.utils import timezone
 from .utils import upload_to
 
 
@@ -33,6 +31,8 @@ class Concerts(models.Model):
     censor = models.CharField(max_length=100, null=True)
     poster = models.FileField(default='images/no_image.png', upload_to=upload_to)
     desc = models.CharField(max_length=500, null=True)
+    price = models.IntegerField(default=0)
+    ticket = models.IntegerField(default=0)
 
     def __str__(self):
         return self.title
@@ -45,8 +45,9 @@ class TicketStatus(models.Model):
 class Promocode(models.Model):
     title = models.CharField(max_length=100)
     date = models.DateTimeField(default=timezone.now)
-    concertId = models.IntegerField()
-    discount = models.IntegerField()
+    discount = models.IntegerField(validators=[
+        MaxValueValidator(100),
+        MinValueValidator(0)], )
 
 
 class Tickets(models.Model):
@@ -54,11 +55,14 @@ class Tickets(models.Model):
     userId = models.IntegerField(default=0)
     statusId = models.ForeignKey(TicketStatus, default=1, on_delete=models.SET_DEFAULT)
     promocodeId = models.ForeignKey(Promocode, default=1, on_delete=models.SET_DEFAULT)
-
     price = models.FloatField()
     finalPrice = models.FloatField()
 
 
 class Cart(models.Model):
     userId = models.IntegerField()
-    ticketId = models.IntegerField()
+    concertId = models.ForeignKey(Concerts, default=0, on_delete=models.SET_DEFAULT)
+    count = models.IntegerField(default=1)
+    promocodeId = models.ForeignKey(Promocode, blank=True, null=True, on_delete=models.DO_NOTHING)
+    price = models.FloatField(default=0)
+    statusId = models.IntegerField(default=1)
