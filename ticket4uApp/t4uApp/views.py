@@ -411,4 +411,7 @@ def make_3(request):
     print(result)
     return Response('1', status.HTTP_200_OK)
 
-
+@api_view(['GET'])
+@permission_classes((permissions.IsAuthenticated, ))
+def me(request):
+    return Response(True, status.HTTP_200_OK)
