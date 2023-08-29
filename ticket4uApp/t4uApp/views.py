@@ -319,56 +319,7 @@ def make_payment(request):
         items.append(payment_item_gen(key['title'], price, key['count']))
 
     payment_obj = payment_obj_gen(items, str(uuid.uuid4()), amount)
-    pattern = {
-        "name": "Item 1",
-        "description": "The best item ever",
-        "sku": "xyz-2654",
-        "unit_amount": {
-            "currency_code": "USD",
-            "value": "10.00"
-        },
-        "quantity": "1"
-    },
-    payment = {
-        "purchase_units": [
-            {
-                "reference_id": "PUHFLKJ",
-                "description": "Some description",
-                "custom_id": '654TREW',
-                "amount": {
-                    "currency_code": 'USD',
-                    "value": "40.00",
-                    "breakdown": {
-                        "item_total": {
-                            "currency_code": "USD",
-                            "value": "40"
-                        }
-                    }
-                },
 
-                "items": [
-                    {
-                        "name": "Item 1",
-                        "unit_amount": {
-                            "currency_code": "USD",
-                            "value": "10.00"
-                        },
-                        "quantity": "1"
-                    },
-                    {
-                        "name": "Item 2",
-                        "unit_amount": {
-                            "currency_code": "USD",
-                            "value": "15.00"
-                        },
-                        "quantity": "2"
-                    }
-                ]
-
-            }
-
-        ],
-    }
     return Response(json.dumps(payment_obj), status.HTTP_200_OK)
 
 
