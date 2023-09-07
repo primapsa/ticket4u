@@ -1,7 +1,5 @@
 from django.contrib.auth.models import User
-# from .models import User
 from rest_framework import serializers
-
 from .models import Concerts, Place, ConcertType, SingerVoice, Cart, Promocode
 
 
@@ -32,7 +30,7 @@ class ConcertsSerializerEx(serializers.ModelSerializer):
         model = Concerts
         fields = ('id', 'title', 'concertName', 'composer', 'wayHint', 'headliner', 'censor',
                   'date', 'address', 'latitude', 'longitude', 'type', 'typeId_id', 'voice', 'singerVoiceId_id',
-                  'poster')
+                  'poster', 'price', 'ticket', 'desc')
 
 
 class PlaceSerializer(serializers.ModelSerializer):
@@ -54,7 +52,7 @@ class ConcertsExtendedSerializer(serializers.ModelSerializer):
 
 class ConcertsExtendedSerializer2(serializers.ModelSerializer):
     price = serializers.FloatField()
-    tickets = serializers.IntegerField()
+    ticket = serializers.IntegerField()
     address = serializers.CharField(max_length=100)
     latitude = serializers.CharField(max_length=100)
     longitude = serializers.CharField(max_length=100)
@@ -63,7 +61,7 @@ class ConcertsExtendedSerializer2(serializers.ModelSerializer):
         model = Concerts
         fields = ('title', 'date', 'typeId', 'singerVoiceId', 'concertName',
                   'composer', 'wayHint', 'headliner', 'censor', 'address', 'latitude', 'longitude', 'poster', 'price',
-                  'tickets')
+                  'ticket')
 
 
 class SingerVoiceSerializer(serializers.ModelSerializer):
@@ -105,6 +103,10 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = '__all__'
 
+class UserSerializerMe(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('email','is_staff','id')
 
 class RegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
