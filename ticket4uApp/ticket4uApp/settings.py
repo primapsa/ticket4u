@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from datetime import timedelta
 from pathlib import Path
-
+import dj_database_url
 import rest_framework.authentication
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -24,13 +24,16 @@ MEDIA_URL = '/media/'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-)++1@e$9&9nn9*ip^o2k1+k1mbh=hn#2^-$cr4vq2!i%e9re-g'
 
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-)++1@e$9&9nn9*ip^o2k1+k1mbh=hn#2^-$cr4vq2!i%e9re-g')
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-# Application definition
+DEBUG = bool(os.environ.get('DJANGO_DEBUG', True))
+STATIC_URL = '/static/'
+if not DEBUG:  
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 INSTALLED_APPS = [
     't4uApp',
@@ -50,6 +53,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -81,10 +85,14 @@ WSGI_APPLICATION = 'ticket4uApp.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': BASE_DIR / 'db.sqlite3',
+    # }
+    'default': dj_database_url.config(       
+        default='postgresql://postgres:postgres@localhost:5432/mysite',
+        conn_max_age=600
+    )
 }
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -168,7 +176,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
