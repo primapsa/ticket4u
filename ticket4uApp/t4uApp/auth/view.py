@@ -16,9 +16,10 @@ class RegisterApi(generics.GenericAPIView):
     
     def post(self, request, *args,  **kwargs):        
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()      
-        return Response(serializer.data, status.HTTP_200_OK)
+        if serializer.is_valid():
+            user = serializer.save()      
+            return Response(serializer.data, status.HTTP_200_OK)
+        return Response('Пользователь уже существует', status=status.HTTP_400_BAD_REQUEST)
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
