@@ -4,6 +4,7 @@ from django.utils import timezone
 from .utils import upload_to
 from django.db.models.signals import post_delete
 from django.dispatch.dispatcher import receiver
+from django.core.validators import FileExtensionValidator
 
 class ConcertType(models.Model):
     title = models.CharField(max_length=100)
@@ -30,7 +31,7 @@ class Concerts(models.Model):
     wayHint = models.CharField(max_length=100, null=True,blank=True)
     headliner = models.CharField(max_length=100, null=True,blank=True)
     censor = models.CharField(max_length=100, null=True,blank=True)
-    poster = models.FileField(default='no_image.png', upload_to=upload_to)
+    poster = models.FileField(default='no_image.png', upload_to=upload_to, validators = [FileExtensionValidator(allowed_extensions=['png','jpg', 'jpeg'])])
     desc = models.CharField(max_length=2000, null=True,blank=True)
     price = models.IntegerField(default=0)
     ticket = models.IntegerField(default=0)
