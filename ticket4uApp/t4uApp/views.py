@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 from .auth.serializer import MyTokenObtainPairSerializer
 from .serializers import *
+from rest_framework_simplejwt.backends import TokenBackend
 from .setting import page
 from .utils import  email_tickets,payment_item_gen,payment_obj_gen, email_tickets
 
@@ -215,8 +216,12 @@ def cart_user(request, uid):
 def promocode_list(request):
 
     if request.method == 'GET':
+        per_page = request.GET.get("count")
+        page_number = request.GET.get("page")
         promocodes = Promocode.objects.all()
-        serializer = PromocodeSerializer(promocodes, context={'request': request}, many=True)
+        paginator = Paginator(promocodes, per_page)
+        paged = paginator.get_page(page_number)  
+        serializer = PromocodeSerializer(paged, context={'request': request}, many=True)
         output = {'data': serializer.data, 'total': promocodes.count()}
 
         return Response(output, status.HTTP_200_OK)
@@ -331,26 +336,24 @@ def make_payment(request):
     payment_obj = payment_obj_gen(items, ids_string, amount)
 
     return Response(payment_obj, status.HTTP_200_OK)
-
-
+ 
 @api_view(['GET'])
-@permission_classes((permissions.AllowAny,))
+@permission_classes((permissions.IsAuthenticated,))
 
 def me(request):
-    token = request.META.get('HTTP_AUTHORIZATION')
+    token = request.META.get('HTTP_AUTHORIZATION')  
     if not token:
-        return Response({'code': 0}, status.HTTP_200_OK)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
     token = request.META.get('HTTP_AUTHORIZATION', " ").split(' ')[1]
     token = AccessToken(token)
     user_id = token.payload['user_id']
     user = User.objects.filter(id=user_id)
     if not user:
-        return Response({'code': 0}, status.HTTP_200_OK)
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+    
     serializer = UserSerializerMe(user, context={'request': request}, many=True)
    
-    return Response({'code': 1, 'data': serializer.data[0]}, status.HTTP_200_OK)
- 
-
+    return Response(serializer.data[0], status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes((permissions.AllowAny,))
