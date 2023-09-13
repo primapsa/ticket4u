@@ -17,26 +17,23 @@ import rest_framework.authentication
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-)++1@e$9&9nn9*ip^o2k1+k1mbh=hn#2^-$cr4vq2!i%e9re-g')
-DEBUG = False
-STATIC_ROOT = os.path.join(BASE_DIR, 'media/')
-STATIC_URL = '/media/'
+
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # URL used to access the media
 MEDIA_URL = '/media/'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 # SECURITY WARNING: keep the secret key used in production secret!
 
-
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-)++1@e$9&9nn9*ip^o2k1+k1mbh=hn#2^-$cr4vq2!i%e9re-g')
 # SECURITY WARNING: don't run with debug turned on in production!
-
-
-if not DEBUG:  
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+DEBUG = False
+STATIC_URL = '/static/'
+# if not DEBUG:  
+#     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  
+#     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 INSTALLED_APPS = [
     't4uApp',
