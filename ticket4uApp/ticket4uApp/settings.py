@@ -29,7 +29,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-)++1@e$9&9nn9*ip^o2k1+k1mbh=hn#2^-$cr4vq2!i%e9re-g')
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = bool(os.environ.get('DJANGO_DEBUG', True))
+DEBUG = False
 STATIC_URL = '/static/'
 if not DEBUG:  
     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  
