@@ -32,7 +32,7 @@ class Concerts(models.Model):
     headliner = models.CharField(max_length=100, null=True,blank=True)
     censor = models.CharField(max_length=100, null=True,blank=True)
     poster = models.FileField(default='no_image.png', upload_to=upload_to, validators = [FileExtensionValidator(allowed_extensions=['png','jpg', 'jpeg'])])
-    desc = models.CharField(max_length=2000, null=True,blank=True)
+    desc = models.CharField(max_length=15000, null=True,blank=True)
     price = models.IntegerField(default=0)
     ticket = models.IntegerField(default=0)
 
