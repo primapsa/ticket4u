@@ -27,7 +27,7 @@ def concert_list(request):
         concerts = (
             Concerts.objects.select_related('typeId', 'placeId', 'singerVoiceId')
             .values('id', 'title', 'date', 'placeId__address', 'typeId_id', 'typeId__title', 'placeId__latitude',
-                    'placeId__longitude', 'singerVoiceId__title', 'singerVoiceId_id', 'desc','poster', 'censor', 'price', 'ticket', 'composer', 'concertName'))
+                    'placeId__longitude', 'singerVoiceId__title', 'singerVoiceId_id', 'desc','poster', 'censor', 'price', 'ticket', 'composer', 'concertName', 'wayHint', 'headliner'))
       
         if(keyword):
             concerts = concerts.filter(title__iregex=f'{keyword}')
@@ -87,7 +87,7 @@ def concert(request, pk):
         return Response(status.HTTP_204_NO_CONTENT)
     
     if request.method == 'PUT':
-        serializer = ConcertsSerializer(record, data=request.data, context={'request': request})
+        serializer = ConcertsSerializer(record, data=request.data, context={'request': request})      
         if serializer.is_valid():
             serializer.save()         
             concert = get_concerts(pk)             
