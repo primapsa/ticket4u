@@ -32,7 +32,20 @@ class ConcertsSerializerEx(serializers.ModelSerializer):
                   'date', 'address', 'latitude', 'longitude', 'type', 'typeId_id', 'voice', 'singerVoiceId_id',
                   'poster', 'price', 'ticket', 'desc')
 
+class ConcertsTypePlaceSingerSerializer(serializers.ModelSerializer):
+    type = serializers.ReadOnlyField(source='typeId.title')
+    address = serializers.ReadOnlyField(source='placeId.address')
+    latitude = serializers.ReadOnlyField(source='placeId.latitude')
+    longitude = serializers.ReadOnlyField(source='placeId.longitude')
+    voice = serializers.ReadOnlyField(source='singerVoiceId.title')
+    
 
+    class Meta:
+        model = Concerts
+        fields = ('id', 'title', 'concertName', 'composer', 'wayHint', 'headliner', 'censor',
+                  'date', 'address', 'latitude', 'longitude', 'type', 'typeId_id', 'voice', 'singerVoiceId_id',
+                  'poster', 'price', 'ticket', 'desc')
+        
 class PlaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Place
@@ -50,7 +63,7 @@ class ConcertsExtendedSerializer(serializers.ModelSerializer):
                   'composer', 'wayHint', 'headliner', 'censor', 'place', 'poster', 'price', 'tickets')
 
 
-class ConcertsExtendedSerializer2(serializers.ModelSerializer):
+class ConcertsAddresSerializer(serializers.ModelSerializer):
     price = serializers.FloatField()
     ticket = serializers.IntegerField()
     address = serializers.CharField(max_length=100)
@@ -91,7 +104,27 @@ class CartSerializerEx(serializers.ModelSerializer):
         model = Cart
         fields = ('id', 'count', 'title', 'poster', 'price', 'tickets', 'discount', 'promocode')
 
+class CartUserSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(source='concertId.title')
+    poster = serializers.CharField(source='concertId.poster')
+    price = serializers.IntegerField(source='concertId.price')
+    tickets = serializers.IntegerField(source='concertId.ticket')
+    discount = serializers.IntegerField(source='promocodeId.discount', allow_null = True)
+    promocode = serializers.CharField(source='promocodeId.title', allow_null = True)
 
+    class Meta:
+        model = Cart
+        fields = ('id', 'count', 'title', 'poster', 'price', 'tickets', 'discount', 'promocode')    
+
+###############################################
+class CartSerializerTest(serializers.ModelSerializer):
+    title = serializers.ReadOnlyField(source='concertId.title')   
+
+    class Meta:
+        model = Cart
+        fields = ('userId','title')
+
+#####################################################
 class PromocodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Promocode

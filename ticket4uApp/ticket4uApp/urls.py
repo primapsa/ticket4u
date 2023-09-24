@@ -24,28 +24,32 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView, TokenVerifyView
 )
+
 from t4uApp.auth.view import MyTokenObtainPairView
 from t4uApp.auth.view import RegisterApi, SocialLoginAuth
 from t4uApp import views
+from t4uApp import views2
 
 urlpatterns = [
                   path('admin/', admin.site.urls),
-                  path('api/concerts/', views.concert_list),
-                  path('api/concerts/<str:pk>', views.concert),
-                  path('api/type/', views.concert_type),
-                  path('api/voice/', views.singer_voice),                
-                  path('api/promocodes/', views.promocode_list),
-                  path('api/promocodes/<str:pk>', views.promocode_change),
-                  path('api/promocode/', views.promocode_find),
-                  path('api/cart/', views.cart_list),
-                  path('api/cart/<str:pk>', views.cart_change),
-                  path('api/cart/user/<str:uid>', views.cart_user),
-                  path('api/webhook/paypal/', views.paypal),
-                  path('api/paypal/create/', views.make_payment),             
+                  path('api/concerts/', views2.ConcertList.as_view()),
+                  path('api/concerts/<int:pk>', views2.ConcertDetail.as_view()),
+                  path('api/type/', views2.ConcertTypeList.as_view()),
+                  path('api/voice/', views2.SingerVoiceList.as_view()),                
+                  path('api/promocodes/', views2.PromocodeList.as_view()),
+                #   path('api/promocodes/<str:pk>', views.promocode_change),
+                  path('api/promocodes/<str:pk>', views2.PromocodeDetail.as_view()),
+                  path('api/promocode/', views2.PromocodeCardDetail.as_view()),
+                  path('api/cart/', views2.CartList.as_view()),
+                  path('api/cart/<str:pk>', views2.CartDetail.as_view()),
+                  path('api/cart/user/<str:uid>', views2.CartUserDetail.as_view()),
+                  path('api/webhook/paypal/', views2.Paypal.as_view()),
+                  path('api/paypal/create/', views2.Payment.as_view()),             
                   path('api/user/login/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
-                  path('api/user/login/social/', views.social_login),
+                  path('api/user/login/social/', views2.SocialLogin.as_view()),
                   path('api/user/register/', RegisterApi.as_view()),
-                  path('api/user/me/', views.me),
+                  path('api/user/me/', views2.Me.as_view()),
                   path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-                  path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),                
+                  path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),   
+                  path('test/<int:pk>/', views.CartDetail.as_view()),             
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
