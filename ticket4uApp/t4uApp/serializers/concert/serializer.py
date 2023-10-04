@@ -1,6 +1,5 @@
-from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Concerts, Place, ConcertType, SingerVoice, Cart, Promocode
+from t4uApp.models.models import Concerts, Place, ConcertType, SingerVoice
 
 
 class ConcertTypeSerializer(serializers.ModelSerializer):
@@ -11,6 +10,20 @@ class ConcertTypeSerializer(serializers.ModelSerializer):
         model = ConcertType
         fields = ('value', 'label')
 
+
+class ConcertsTypePlaceSingerSerializer(serializers.ModelSerializer):
+    type = serializers.ReadOnlyField(source='typeId.title')
+    address = serializers.ReadOnlyField(source='placeId.address')
+    latitude = serializers.ReadOnlyField(source='placeId.latitude')
+    longitude = serializers.ReadOnlyField(source='placeId.longitude')
+    voice = serializers.ReadOnlyField(source='singerVoiceId.title')
+
+    class Meta:
+        model = Concerts
+        fields = ('id', 'title', 'concertName', 'composer', 'wayHint', 'headliner', 'censor',
+                  'date', 'address', 'latitude', 'longitude', 'type', 'typeId_id', 'voice', 'singerVoiceId_id',
+                  'poster', 'price', 'ticket', 'desc')   
+        
 
 class ConcertsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -48,9 +61,9 @@ class ConcertsExtendedSerializer(serializers.ModelSerializer):
         model = Concerts
         fields = ('title', 'date', 'typeId', 'singerVoiceId', 'concertName',
                   'composer', 'wayHint', 'headliner', 'censor', 'place', 'poster', 'price', 'tickets')
+        
 
-
-class ConcertsExtendedSerializer2(serializers.ModelSerializer):
+class ConcertsAddresSerializer(serializers.ModelSerializer):
     price = serializers.FloatField()
     ticket = serializers.IntegerField()
     address = serializers.CharField(max_length=100)
@@ -62,8 +75,8 @@ class ConcertsExtendedSerializer2(serializers.ModelSerializer):
         fields = ('title', 'date', 'typeId', 'singerVoiceId', 'concertName',
                   'composer', 'wayHint', 'headliner', 'censor', 'address', 'latitude', 'longitude', 'poster', 'price',
                   'ticket')
-
-
+        
+        
 class SingerVoiceSerializer(serializers.ModelSerializer):
     value = serializers.CharField(source='id')
     label = serializers.CharField(source='title')
@@ -71,59 +84,3 @@ class SingerVoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = SingerVoice
         fields = ('value', 'label')
-
-
-class CartSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Cart
-        fields = '__all__'
-
-
-class CartSerializerEx(serializers.ModelSerializer):
-    title = serializers.CharField(source='concertId__title')
-    poster = serializers.CharField(source='concertId__poster')
-    price = serializers.IntegerField(source='concertId__price')
-    tickets = serializers.IntegerField(source='concertId__ticket')
-    discount = serializers.IntegerField(source='promocodeId__discount')
-    promocode = serializers.CharField(source='promocodeId__title')
-
-    class Meta:
-        model = Cart
-        fields = ('id', 'count', 'title', 'poster', 'price', 'tickets', 'discount', 'promocode')
-
-
-class PromocodeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Promocode
-        fields = '__all__'
-
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = '__all__'
-
-class UserSerializerMe(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('email','is_staff','id')
-
-class RegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(
-        max_length=128,
-        min_length=8,
-        write_only=True
-    )
-    token = serializers.CharField(max_length=255, read_only=True)
-
-    class Meta:
-        model = User
-        fields = ['email', 'username', 'password', 'token']
-
-    def create(self, validated_data):
-        return User.objects.create_user(**validated_data)
-
-
-
-
-
