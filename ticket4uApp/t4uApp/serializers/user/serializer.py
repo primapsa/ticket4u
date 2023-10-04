@@ -16,30 +16,15 @@ class UserSerializerMe(serializers.ModelSerializer):
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(max_length=128, min_length=8, write_only=True)
-    token = serializers.CharField(max_length=255, read_only=True)
+    password = serializers.CharField(max_length=128, min_length=8, write_only=True)  
 
     class Meta:
-        model = User
-        # fields = ["email", "username", "password", "token"]
+        model = User       
         fields = ["email", "username", "password"]
 
     def create(self, validated_data):
-        return User.objects.create_user(**validated_data)
-    
+        return User.objects.create_user(**validated_data)    
 
-# class RegisterSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = User
-#         fields = ('username', 'password', 'email')
-#         extra_kwargs = {'password': {'write_only': True}, }
-
-#     def create(self, validated_data):
-#         user = User.objects.create_user(validated_data['username'],
-#                                         password=validated_data['password'],
-#                                         email=validated_data['email'])
-#         return user
-    
 
 class TokenLoginSerializer(TokenObtainPairSerializer):
     @classmethod
