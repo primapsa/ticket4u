@@ -13,12 +13,13 @@ class ConcertList(APIView):
 
     def get(self, request):
         concerts = self.get_object()
+        total = concerts.count()
         page = self._get_page_param(request)
         concerts = self._filter(concerts, **self._get_filters_param(request))
         paged = self._paginate(concerts, page["per_page"], page["page_number"])
         serializer = ConcertsTypePlaceSingerSerializer(paged, many=True)
 
-        return Response(self._make_output(serializer), status.HTTP_200_OK)
+        return Response(self._make_output(serializer, total), status.HTTP_200_OK)
 
     def post(self, request):
         serializer = ConcertsAddresSerializer(data=request.data)
@@ -83,8 +84,8 @@ class ConcertList(APIView):
 
         return {"address": address, "latitude": latitude, "longitude": longitude}
 
-    def _make_output(self, obj):
-        return {"data": obj.data, "total": len(obj.data)}
+    def _make_output(self, obj, total):
+        return {"data": obj.data, "total": total}
 
 
 class ConcertDetail(APIView):

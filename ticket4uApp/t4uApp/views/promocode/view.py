@@ -38,16 +38,17 @@ class PromocodeList(generics.ListCreateAPIView):
     def get(self, request):
         per_page = request.GET.get("count", settings.ITEMS_PER_PAGE)
         page_number = request.GET.get("page", settings.DEFAULT_PAGE)
+        total = self.get_queryset().count()
         paged = self._paginate(per_page, page_number)
         serializer = self.get_serializer(paged, many=True)
-        return Response(self._make_output(serializer), status.HTTP_200_OK)
+        return Response(self._make_output(serializer,total), status.HTTP_200_OK)
 
     def _paginate(self, per_page, page):
         paginator = Paginator(self.get_queryset(), per_page)
         return paginator.get_page(page)
 
-    def _make_output(self, serialized):
-        return {"data": serialized.data, "total": len(serialized.data)}
+    def _make_output(self, serialized, total):
+        return {"data": serialized.data, "total": total}
 
 
 class PromocodeDetail(generics.DestroyAPIView, generics.UpdateAPIView):
