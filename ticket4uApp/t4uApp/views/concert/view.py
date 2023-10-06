@@ -38,6 +38,7 @@ class ConcertList(APIView):
                     return Response(
                         concerts_serializer.errors, status.HTTP_400_BAD_REQUEST
                     )
+              
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
     def _paginate(self, obj, per_page, page):
@@ -100,7 +101,7 @@ class ConcertDetail(APIView):
         except Concerts.DoesNotExist:
             return None
 
-    def get(self, pk):
+    def get(self, _ , pk):
         concert = self.get_object(pk, True)
         serializer = ConcertsTypePlaceSingerSerializer(concert)
         return Response(serializer.data, status=status.HTTP_200_OK)
