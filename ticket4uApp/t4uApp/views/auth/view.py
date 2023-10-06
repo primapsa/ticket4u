@@ -7,25 +7,25 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth.models import User
-
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 class Me(generics.RetrieveAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     serializer_class = UserSerializerMe
     queryset = User.objects.all()
 
     def get(self, request):
-        token = request.META.get("HTTP_AUTHORIZATION", " ")
+        token = request.META.get("HTTP_AUTHORIZATION", None)        
         if not token:
-            return Response("", status=status.HTTP_400_BAD_REQUEST)
-        token = token.split(" ")[1]
-        token = AccessToken(token)
+            return Response(False, status=status.HTTP_200_OK)
+        token = token.split(" ")[1]        
+        token = AccessToken(token)       
         user_id = token.payload.get("user_id", None)
         if not user_id:
-            return Response("", status=status.HTTP_400_BAD_REQUEST)
+            return Response(False, status=status.HTTP_200_OK)
         user = self.get_user(user_id)
         if not user:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+            return Response(False, status=status.HTTP_200_OK)
         serializer = self.get_serializer(user, context={"request": request})
 
         return Response(serializer.data, status.HTTP_200_OK)
@@ -89,6 +89,7 @@ class Register(generics.GenericAPIView):
         if serializer.is_valid():
             user = serializer.save()
             return Response(serializer.data, status.HTTP_200_OK)
+      
         return Response(
             "Пользователь уже существует", status=status.HTTP_400_BAD_REQUEST
         )
