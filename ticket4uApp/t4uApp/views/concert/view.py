@@ -12,10 +12,10 @@ class ConcertList(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        concerts = self.get_object()
-        total = concerts.count()
+        concerts = self.get_object()       
         page = self._get_page_param(request)
         concerts = self._filter(concerts, **self._get_filters_param(request))
+        total = concerts.count()
         paged = self._paginate(concerts, page["per_page"], page["page_number"])
         serializer = ConcertsTypePlaceSingerSerializer(paged, many=True)
 
