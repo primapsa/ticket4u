@@ -1,6 +1,5 @@
 from rest_framework import serializers
-# from t4uApp.models.models import Cart, Tickets
-from t4uApp.models.models import Cart
+from t4uApp.models.models import Cart, Tickets
 
 
 class CartSerializer(serializers.ModelSerializer):
@@ -23,8 +22,7 @@ class CartUserSerializer(serializers.ModelSerializer):
         fields = ('id', 'count', 'title', 'poster', 'price', 'tickets', 'discount', 'promocode', 'ticket_limit')    
 
     def get_ticket_limit(self, obj):
-        # tickets = Tickets.objects.filter(concert=obj.concertId)
-        tickets =[]
+        tickets = Tickets.objects.filter(concert=obj.concertId)
         count_sum = sum(ticket.count for ticket in tickets)
         return int(obj.concertId.ticket - count_sum)
 

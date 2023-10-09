@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from t4uApp.models.models import Concerts, Place, ConcertType, SingerVoice
+from t4uApp.models.models import Concerts, Place, ConcertType, SingerVoice, Tickets
 
 
 class ConcertTypeSerializer(serializers.ModelSerializer):
@@ -27,16 +27,15 @@ class ConcertsTypePlaceSingerSerializer(serializers.ModelSerializer):
                   'poster', 'price', 'ticket', 'desc', 'ticket_limit') 
          
     def get_ticket_limit(self, obj):
-        # tickets = Tickets.objects.filter(concert=obj)
-        tickets = []
+        tickets = Tickets.objects.filter(concert=obj)
         count_sum = sum(ticket.count for ticket in tickets)
         return int(obj.ticket - count_sum)
  
 
-# class TicketsSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Tickets
-#         fields = ('price',)
+class TicketsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tickets
+        fields = ('price',)
 
 class ConcertsSerializer(serializers.ModelSerializer):
     class Meta:

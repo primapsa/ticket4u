@@ -63,11 +63,11 @@ class Promocode(models.Model):
     )
 
 
-# class Tickets(models.Model):
-#     concert = models.ForeignKey(Concerts, on_delete=models.CASCADE, null=False)
-#     user = models.ForeignKey(User, on_delete=models.CASCADE )
-#     status = models.ForeignKey(TicketStatus, blank=True, null=True, default=None, on_delete=models.SET_DEFAULT)
-#     count = models.IntegerField(default=1)
+class Tickets(models.Model):
+    concert = models.ForeignKey(Concerts, on_delete=models.CASCADE, null=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE )
+    status = models.ForeignKey(TicketStatus, blank=True, null=True, default=None, on_delete=models.SET_DEFAULT)
+    count = models.IntegerField(default=1)
   
 
 
