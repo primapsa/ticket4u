@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from t4uApp.models.models import Cart
+from t4uApp.models.models import Cart, Tickets
 
 
 class CartSerializer(serializers.ModelSerializer):
@@ -15,11 +15,22 @@ class CartUserSerializer(serializers.ModelSerializer):
     tickets = serializers.IntegerField(source='concertId.ticket')
     discount = serializers.IntegerField(source='promocodeId.discount', allow_null = True)
     promocode = serializers.CharField(source='promocodeId.title', allow_null = True)
+    ticket_limit = serializers.SerializerMethodField()
 
     class Meta:
         model = Cart
-        fields = ('id', 'count', 'title', 'poster', 'price', 'tickets', 'discount', 'promocode')    
+        fields = ('id', 'count', 'title', 'poster', 'price', 'tickets', 'discount', 'promocode', 'ticket_limit')    
 
+    def get_ticket_limit(self, obj):
+        tickets = Tickets.objects.filter(concert=obj.concertId)
+        count_sum = sum(ticket.count for ticket in tickets)
+        return int(obj.concertId.ticket - count_sum)
+
+class CartTicketSerializer(serializers.ModelSerializer):
+    status =  serializers.IntegerField()
+    class Meta:
+        model = Cart
+        fields = ('count', 'concertId', 'userId', 'status' )
 
 class CartPaymentSerializer(serializers.ModelSerializer):
     title = serializers.CharField(source='concertId.title')    

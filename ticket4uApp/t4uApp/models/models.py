@@ -5,7 +5,7 @@ from t4uApp.utils import upload_to
 from django.db.models.signals import post_delete
 from django.dispatch.dispatcher import receiver
 from django.core.validators import FileExtensionValidator
-
+from django.contrib.auth.models import User
 
 class ConcertType(models.Model):
     title = models.CharField(max_length=100)
@@ -64,12 +64,11 @@ class Promocode(models.Model):
 
 
 class Tickets(models.Model):
-    concertId = models.ForeignKey(Concerts, on_delete=models.CASCADE, null=False)
-    userId = models.IntegerField(default=0)
-    statusId = models.ForeignKey(TicketStatus, default=1, on_delete=models.SET_DEFAULT)
-    promocodeId = models.ForeignKey(Promocode, default=1, on_delete=models.SET_DEFAULT)
-    price = models.FloatField()
-    finalPrice = models.FloatField()
+    concert = models.ForeignKey(Concerts, on_delete=models.CASCADE, null=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE )
+    status = models.ForeignKey(TicketStatus, blank=True, null=True, default=None, on_delete=models.SET_DEFAULT)
+    count = models.IntegerField(default=1)
+  
 
 
 class Cart(models.Model):

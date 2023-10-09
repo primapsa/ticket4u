@@ -6,7 +6,7 @@ from t4uApp.serializers import *
 from rest_framework.views import APIView
 from ticket4uApp import settings
 from t4uApp.models.models import Concerts, ConcertType, SingerVoice
-
+from django.db import transaction
 
 class ConcertList(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -16,11 +16,12 @@ class ConcertList(APIView):
         page = self._get_page_param(request)
         concerts = self._filter(concerts, **self._get_filters_param(request))
         total = concerts.count()
-        paged = self._paginate(concerts, page["per_page"], page["page_number"])
-        serializer = ConcertsTypePlaceSingerSerializer(paged, many=True)
+        paged = self._paginate(concerts, page["per_page"], page["page_number"])        
+        serializer = ConcertsTypePlaceSingerSerializer(paged, many=True)        
 
         return Response(self._make_output(serializer, total), status.HTTP_200_OK)
-
+    
+    @transaction.atomic
     def post(self, request):
         serializer = ConcertsAddresSerializer(data=request.data)
         if serializer.is_valid():
@@ -132,3 +133,7 @@ class SingerVoiceList(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = SingerVoiceSerializer
     queryset = SingerVoice.objects.all()
+
+
+
+          
