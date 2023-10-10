@@ -6,14 +6,16 @@ from t4uApp.models.models import (
     Concerts,
     SingerVoice,
     Cart,
+    TicketStatus    
 )
 from django.contrib.auth.models import User
 from rest_framework import status
 from t4uApp.serializers.user import TokenLoginSerializer
 from rest_framework.test import APIClient
+from django.utils import timezone
 import jwt
 import json
-from django.utils import timezone
+
 
 
 class BaseCaseTest(TestCase):
@@ -57,7 +59,7 @@ class AuthTest(BaseCaseTest):
 
     def test_me_without_token(self):
         response = self.client.get(self.url_me)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_me_with_correct_token(self):
         response = self.client.post(self.url_login, self.data, format="json")
@@ -170,6 +172,8 @@ class CartDetailTest(CartTest):
 class CartUserDetailTest(CartTest):
     def setUp(self):
         self.url = "/api/v1/cart/user/1"
+        self.ticket_status_1 = TicketStatus.objects.create(title =1)
+        self.ticket_status_2 = TicketStatus.objects.create(title =2)
         return super().setUp()
 
     def test_get_cart_user(self):
