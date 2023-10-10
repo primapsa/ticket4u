@@ -1,16 +1,23 @@
 # t4u backend
 ***
+
 1. Клонировать
 ```
  git clone https://github.com/primapsa/ticket4u.git
 ```
-Далее перейти в /ticket4uApp и все комнды запускать из этой папки
 
-2. Установить зависимости
+2. Создать и активировать виртуальное окружение
+```
+ python –m venv t4uenv
+ t4uenv\Scripts\activate
+```
+
+3. Установить зависимости
 ```
  pip install -r requirements.txt
 ```
-3. В ticket4uApp/settings.py настроить базу данных
+
+4. В ticket4uApp/settings.py настроить базу данных
 ```
 DATABASES = {
     'default': {
@@ -19,22 +26,25 @@ DATABASES = {
     }
 }
 ```
-4. Выполнить миграции
+Далее перейти в /ticket4uApp и все комнды запускать из этой папки
+
+5. Выполнить миграции
 ```
  python manage.py makemigrations
  python manage.py migrate
 ```
 
-5. Добавить инициализационные значения в базу данных
+6. Добавить инициализационные значения в базу данных
 ```
 python manage.py loaddata init
 ```
-6. Создать админа
+
+7. Создать админа
 ```
 python manage.py createsuperuser
 ```
 
-7. Запустить сервер
+8. Запустить сервер
 ```
 python manage.py runserver
 ```
