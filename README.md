@@ -43,6 +43,12 @@ python manage.py loaddata init
 ```
 python manage.py createsuperuser
 ```
+имя пользователя и адрес электронной почты должы совпадать
+
+```
+Имя пользователя: admin@t4u.com
+Адрес электронной почты: admin@t4u.com
+```
 
 8. Запустить сервер
 ```
