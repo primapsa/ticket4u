@@ -40,5 +40,19 @@
         "fields": {
             "title": "бас"           
         }
+    },
+    {
+        "model": "t4uApp.ticketstatus",
+        "pk": 1,
+        "fields": {
+            "title": "новый"           
+        }
+    },
+    {
+        "model": "t4uApp.ticketstatus",
+        "pk": 2,
+        "fields": {
+            "title": "оплаче"           
+        }
     }
 ]
