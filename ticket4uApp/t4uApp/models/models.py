@@ -20,7 +20,23 @@ class Place(models.Model):
 class SingerVoice(models.Model):
     title = models.CharField(max_length=100)
 
+class ConcertParty(models.Model):
+    censor = models.CharField(max_length=100)
 
+class ConcertOpenair(models.Model):
+    wayHint = models.CharField(max_length=100)
+    headliner = models.CharField(max_length=100)
+
+class ConcertClassic(models.Model):
+    singerVoiceId = models.ForeignKey(SingerVoice, on_delete=models.CASCADE)
+    concertName = models.CharField(max_length=100)
+    composer = models.CharField(max_length=100)
+
+class ConcertExtra(models.Model):
+    party = models.ForeignKey(ConcertParty, blank=True, null=True, default=None, on_delete=models.SET_DEFAULT)
+    openair = models.ForeignKey(ConcertOpenair, blank=True, null=True, default=None, on_delete=models.SET_DEFAULT)
+    classic = models.ForeignKey(ConcertClassic, blank=True, null=True, default=None, on_delete=models.SET_DEFAULT)
+    
 class Concerts(models.Model):
     title = models.CharField(max_length=100)
     date = models.DateTimeField(default=timezone.now)
@@ -29,15 +45,7 @@ class Concerts(models.Model):
     )
     typeId = models.ForeignKey(
         ConcertType, blank=True, null=True, default=None, on_delete=models.SET_DEFAULT
-    )
-    singerVoiceId = models.ForeignKey(
-        SingerVoice, blank=True, null=True, default=None, on_delete=models.SET_DEFAULT
-    )
-    concertName = models.CharField(max_length=100, null=True, blank=True)
-    composer = models.CharField(max_length=100, null=True, blank=True)
-    wayHint = models.CharField(max_length=100, null=True, blank=True)
-    headliner = models.CharField(max_length=100, null=True, blank=True)
-    censor = models.CharField(max_length=100, null=True, blank=True)
+    )    
     poster = models.FileField(
         default="no_image.png",
         upload_to=upload_to,
@@ -46,6 +54,7 @@ class Concerts(models.Model):
     desc = models.CharField(max_length=15000, null=True, blank=True)
     price = models.IntegerField(default=0)
     ticket = models.IntegerField(default=0)
+    extra = models.ForeignKey(ConcertExtra, default=None, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title
@@ -67,8 +76,7 @@ class Tickets(models.Model):
     concert = models.ForeignKey(Concerts, on_delete=models.CASCADE, null=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE )
     status = models.ForeignKey(TicketStatus, blank=True, null=True, default=None, on_delete=models.SET_DEFAULT)
-    count = models.IntegerField(default=1)
-  
+    count = models.IntegerField(default=1)  
 
 
 class Cart(models.Model):
