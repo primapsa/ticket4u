@@ -1,11 +1,10 @@
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
 from t4uApp.utils import upload_to
 from django.db.models.signals import post_delete
 from django.dispatch.dispatcher import receiver
 from django.core.validators import FileExtensionValidator
-from django.contrib.auth.models import User
+
 
 class ConcertType(models.Model):
     title = models.CharField(max_length=100)
@@ -58,40 +57,7 @@ class Concerts(models.Model):
 
     def __str__(self):
         return self.title
-
-
-class TicketStatus(models.Model):
-    title = models.CharField(max_length=100)
-
-
-class Promocode(models.Model):
-    title = models.CharField(max_length=100)
-    date = models.DateTimeField(default=timezone.now)
-    discount = models.IntegerField(
-        validators=[MaxValueValidator(99), MinValueValidator(0)],
-    )
-
-
-class Tickets(models.Model):
-    concert = models.ForeignKey(Concerts, on_delete=models.CASCADE, null=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE )
-    status = models.ForeignKey(TicketStatus, blank=True, null=True, default=None, on_delete=models.SET_DEFAULT)
-    count = models.IntegerField(default=1)  
-
-
-class Cart(models.Model):
-    userId = models.IntegerField()
-    concertId = models.ForeignKey(
-        Concerts, blank=True, default=0, on_delete=models.CASCADE
-    )
-    count = models.IntegerField(default=1)
-    promocodeId = models.ForeignKey(
-        Promocode, blank=True, null=True, default=None, on_delete=models.SET_DEFAULT
-    )
-    price = models.FloatField(default=0)
-    statusId = models.IntegerField(default=1)
-
-
+    
 @receiver(post_delete, sender=Concerts)
 def post_save_image(sender, instance, *args, **kwargs):
     try:

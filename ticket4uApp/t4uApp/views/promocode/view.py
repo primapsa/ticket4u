@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from t4uApp.serializers import *
 from rest_framework.views import APIView
 from ticket4uApp import settings
-from t4uApp.models.models import *
+from t4uApp.models import *
 
 class PromocodeCardDetail(APIView):
     permission_classes = [permissions.IsAuthenticated]

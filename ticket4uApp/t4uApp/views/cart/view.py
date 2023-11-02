@@ -4,7 +4,7 @@ from t4uApp.serializers import *
 from t4uApp.utils import email_tickets
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
-from t4uApp.models.models import *
+from t4uApp.models import *
 from django.db import transaction, DatabaseError
 
 class CartList(generics.ListCreateAPIView, generics.DestroyAPIView):

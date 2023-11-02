@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from t4uApp.serializers import *
 from rest_framework.views import APIView
 from rest_framework import status, permissions
-from t4uApp.models.models import *
+from t4uApp.models import *
 
 class Paypal(APIView):
     permission_classes = [permissions.AllowAny]

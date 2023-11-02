@@ -1,5 +1,5 @@
 from django.test import TestCase
-from t4uApp.models.models import Promocode, ConcertType, Place, Concerts, SingerVoice, Cart
+from t4uApp.models import Promocode, ConcertType, Place, Concerts, SingerVoice, Cart
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile

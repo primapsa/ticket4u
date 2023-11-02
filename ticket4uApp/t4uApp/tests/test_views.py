@@ -1,5 +1,5 @@
 from django.test import TestCase
-from t4uApp.models.models import (
+from t4uApp.models import (
     Promocode,
     ConcertType,
     Place,
