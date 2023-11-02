@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from t4uApp.models.models import (
+from t4uApp.models import (
     Concerts,
     Place,
     ConcertType,

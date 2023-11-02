@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from t4uApp.models.models import Cart, Tickets
+from t4uApp.models import Cart, Tickets
 
 
 class CartSerializer(serializers.ModelSerializer):
