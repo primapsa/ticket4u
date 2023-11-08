@@ -7,48 +7,77 @@ from t4uApp.models import (
     Tickets,
     ConcertParty,
     ConcertOpenair,
-    ConcertClassic,
-    ConcertExtra,
+    ConcertClassic
 )
-
-
-class ConcertPartySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ConcertParty
-        fields = "__all__"
-
-
-class ConcertOpenairSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ConcertOpenair
-        fields = "__all__"
-
-
-class ConcertClassicSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ConcertClassic
-        fields = "__all__"
-
-
-class ConcertExtraSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ConcertExtra
-        fields = "__all__"
-
-
-class ConcertTypeSerializer(serializers.ModelSerializer):
-    value = serializers.CharField(source="id")
-    label = serializers.CharField(source="title")
-
-    class Meta:
-        model = ConcertType
-        fields = ("value", "label")
 
 
 class PlaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Place
-        fields = ("address", "latitude", "longitude")
+        fields = ('address', 'latitude', 'longitude')
+
+
+class ConcertTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ConcertType
+        fields = ('id','title' )
+        read_only_field = ('id', )
+
+# class ConcertTypeWithoutTitle(ConcertTypeSerializer):
+#     class Meta(ConcertTypeSerializer.Meta):
+#        fields = ('id', )
+
+class ConcertsSerializer(serializers.ModelSerializer):
+    place = PlaceSerializer()  
+    poster = serializers.FileField(use_url=False) 
+
+    class Meta:
+        model = Concerts
+        fields = ('id', 'title', 'date', 'type', 'poster', 'desc', 'price', 'ticket', 'place')
+        
+# class ConcertWithoutFieldsSerializer(ConcertsSerializer):
+#      class Meta(ConcertsSerializer.Meta):
+#        fields = ('title', 'date', 'desc', 'price', 'ticket')
+
+
+
+
+class BaseConcertExtraSerializer(serializers.ModelSerializer):
+    place = PlaceSerializer()
+    class Meta:
+        model = Place
+        fields = '__all__'
+        read_only_fields = ('id', )
+
+    def create(self, validated):
+        place_data = validated.pop('place')
+        place = Place.objects.create(**place_data)
+        concert_extra = self.Meta.model.objects.create(**validated, place=place)
+        return concert_extra
+    
+class ConcertClassicSerializer(BaseConcertExtraSerializer):
+    class Meta:
+        model = ConcertClassic
+        fields = ConcertsSerializer.Meta.fields + ('singerVoice', 'concertName', 'composer')
+
+class ConcertPartySerializer(BaseConcertExtraSerializer):  
+
+    class Meta:
+        model = ConcertParty
+        fields = ConcertsSerializer.Meta.fields + ('censor', )
+      
+class ConcertOpenairSerializer(BaseConcertExtraSerializer):
+    class Meta:
+        model = ConcertOpenair
+        fields = ConcertsSerializer.Meta.fields + ('wayHint', 'headliner')
+
+# class ConcertPartyOutputSerializer(ConcertsSerializer):
+#         place = PlaceSerializer(read_only=True)  # Вложенный сериализатор для Place
+#         class Meta:
+#             model = ConcertParty
+#             fields = '__all__'
+
+
 
 
 class ConcertsTypePlaceSingerSerializer(serializers.ModelSerializer):
@@ -131,10 +160,10 @@ class TicketsSerializer(serializers.ModelSerializer):
         fields = ("price",)
 
 
-class ConcertsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Concerts
-        fields = "__all__"
+# class ConcertsSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Concerts
+#         fields = "__all__"
 
 
 class ConcertsSerializerEx(serializers.ModelSerializer):

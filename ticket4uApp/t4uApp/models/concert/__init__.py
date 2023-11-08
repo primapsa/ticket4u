@@ -1,1 +1,1 @@
-from .model import ConcertType, Place, SingerVoice, ConcertParty, ConcertOpenair, ConcertClassic, ConcertExtra, Concerts
+from .model import ConcertType, Place, SingerVoice, ConcertParty, ConcertOpenair, ConcertClassic, Concerts

@@ -11,53 +11,46 @@ class ConcertType(models.Model):
 
 
 class Place(models.Model):
-    address = models.CharField(max_length=100, null=True)
+    address = models.CharField(max_length=100, default='')
     latitude = models.CharField(max_length=100)
     longitude = models.CharField(max_length=100)
+
+
+class Concerts(models.Model):
+    title = models.CharField(max_length=100)
+    date = models.DateTimeField(default=timezone.now)
+    place = models.ForeignKey(Place, null=True, on_delete=models.SET_NULL)
+    type = models.ForeignKey(ConcertType, null=True, on_delete=models.SET_NULL)
+    poster = models.FileField(
+        upload_to=upload_to,
+        validators=[FileExtensionValidator(allowed_extensions=["png", "jpg", "jpeg"])],)
+    desc = models.CharField(max_length=15000, null=True, blank=True)
+    price = models.IntegerField(default=0)
+    ticket = models.IntegerField(default=0)
+
+    def __str__(self):
+        return self.title
+
+
+class ConcertParty(Concerts):
+    censor = models.CharField(max_length=100)
+
+
+class ConcertOpenair(Concerts):
+    wayHint = models.CharField(max_length=100)
+    headliner = models.CharField(max_length=100)
 
 
 class SingerVoice(models.Model):
     title = models.CharField(max_length=100)
 
-class ConcertParty(models.Model):
-    censor = models.CharField(max_length=100)
 
-class ConcertOpenair(models.Model):
-    wayHint = models.CharField(max_length=100)
-    headliner = models.CharField(max_length=100)
-
-class ConcertClassic(models.Model):
-    singerVoiceId = models.ForeignKey(SingerVoice, on_delete=models.CASCADE)
+class ConcertClassic(Concerts):
+    singerVoice = models.ForeignKey(SingerVoice, null=True, on_delete=models.SET_NULL)
     concertName = models.CharField(max_length=100)
     composer = models.CharField(max_length=100)
 
-class ConcertExtra(models.Model):
-    party = models.ForeignKey(ConcertParty, blank=True, null=True, default=None, on_delete=models.SET_DEFAULT)
-    openair = models.ForeignKey(ConcertOpenair, blank=True, null=True, default=None, on_delete=models.SET_DEFAULT)
-    classic = models.ForeignKey(ConcertClassic, blank=True, null=True, default=None, on_delete=models.SET_DEFAULT)
-    
-class Concerts(models.Model):
-    title = models.CharField(max_length=100)
-    date = models.DateTimeField(default=timezone.now)
-    placeId = models.ForeignKey(
-        Place, blank=True, null=True, default=None, on_delete=models.SET_DEFAULT
-    )
-    typeId = models.ForeignKey(
-        ConcertType, blank=True, null=True, default=None, on_delete=models.SET_DEFAULT
-    )    
-    poster = models.FileField(
-        default="no_image.png",
-        upload_to=upload_to,
-        validators=[FileExtensionValidator(allowed_extensions=["png", "jpg", "jpeg"])],
-    )
-    desc = models.CharField(max_length=15000, null=True, blank=True)
-    price = models.IntegerField(default=0)
-    ticket = models.IntegerField(default=0)
-    extra = models.ForeignKey(ConcertExtra, default=None, on_delete=models.CASCADE)
 
-    def __str__(self):
-        return self.title
-    
 @receiver(post_delete, sender=Concerts)
 def post_save_image(sender, instance, *args, **kwargs):
     try:

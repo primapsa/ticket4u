@@ -74,13 +74,13 @@ TEMPLATES = [
 WSGI_APPLICATION = "ticket4uApp.wsgi.application"
 
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'db.sqlite3',
-    # }
-    "default": dj_database_url.config(
-        default="postgresql://postgres:postgres@localhost:5432/mysite", conn_max_age=600
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+    # "default": dj_database_url.config(
+    #     default="postgresql://postgres:postgres@localhost:5432/mysite", conn_max_age=600
+    # )
 }
 
 REST_FRAMEWORK = {
@@ -161,3 +161,6 @@ EMAIL_PASSWORD = "jhappmhobknkfwzx"
 
 ITEMS_PER_PAGE = 8
 DEFAULT_PAGE = 1
+DATETIME_FORMAT="%Y-%m-%d%H:%M:%S"
+L10N=False
+USE_TZ=False
