@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from ticket4uApp import settings
 from t4uApp.models import *
 
+
 class PromocodeCardDetail(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -41,8 +42,14 @@ class PromocodeList(generics.ListCreateAPIView):
         total = self.get_queryset().count()
         paged = self._paginate(per_page, page_number)
         serializer = self.get_serializer(paged, many=True)
-        return Response(self._make_output(serializer,total), status.HTTP_200_OK)
+        return Response(self._make_output(serializer, total), status.HTTP_200_OK)
 
+    def create(self, request, *args, **kwargs):
+        title = request.data.get('title', None)
+        if title and Promocode.objects.filter(title=title).exists():
+            return Response({"title": "Промокод уже существует"}, status.HTTP_400_BAD_REQUEST)
+
+        return super().create(request, *args, **kwargs)
     def _paginate(self, per_page, page):
         paginator = Paginator(self.get_queryset(), per_page)
         return paginator.get_page(page)

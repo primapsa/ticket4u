@@ -1,3 +1,4 @@
-from .serializer import ConcertTypeSerializer, ConcertsTypePlaceSingerSerializer, ConcertsSerializer, \
-    ConcertsSerializerEx, PlaceSerializer, ConcertsExtendedSerializer, ConcertsAddresSerializer, SingerVoiceSerializer, \
-    ConcertPartySerializer, ConcertOpenairSerializer, ConcertClassicSerializer, ConcertsUpdateSerializer
+from .serializer import ConcertTypeSerializer, ConcertsSerializer, \
+    PlaceSerializer, SingerVoiceSerializer, \
+    ConcertPartySerializer, ConcertOpenairSerializer, ConcertClassicSerializer, \
+    ConcertsWithRelativesSerializer

@@ -1,6 +1,6 @@
 import uuid
 from django.conf import settings
-import smtplib 
+import smtplib
 from email.message import EmailMessage
 from rest_framework.response import Response
 from rest_framework import status
@@ -14,11 +14,13 @@ def make_bulk(num, obj):
         counter += 1
     return bulk
 
+
 def upload_to(instance, filename):
     ext = filename.split('.')[-1]
     filename = "%s.%s" % (uuid.uuid4(), ext)
     # return 'images/{filename}'.format(filename=filename)
     return filename
+
 
 def html_tickets(title, count):
     return f'''
@@ -30,6 +32,8 @@ def html_tickets(title, count):
             </div>
         </div>
     '''
+
+
 def make_html(body):
     return f'''
         <!DOCTYPE html>
@@ -41,26 +45,26 @@ def make_html(body):
             </body>
         </html>
         '''
-   
-def email_tickets(tickets, email_to):
 
+
+def email_tickets(tickets, email_to):
     if not tickets:
         return
     list = []
     for ticket in tickets:
         list.append(html_tickets(ticket.get('title'), ticket.get('count')))
-    html = ''.join(list)   
+    html = ''.join(list)
     msg = EmailMessage()
     msg['Subject'] = 'Вот ваши билеты!'
-    msg['From'] = settings.EMAIL_ADDRESS 
-    msg['To'] = email_to 
+    msg['From'] = settings.EMAIL_ADDRESS
+    msg['To'] = email_to
     msg.set_content(make_html(html), subtype='html')
     with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-        smtp.login(settings.EMAIL_ADDRESS, settings.EMAIL_PASSWORD) 
+        smtp.login(settings.EMAIL_ADDRESS, settings.EMAIL_PASSWORD)
         smtp.send_message(msg)
         return Response(status=status.HTTP_200_OK)
-    
-    
+
+
 def payment_item_gen(title, price, count):
     return {
         "name": title,
@@ -93,4 +97,3 @@ def payment_obj_gen(items, id, amount):
             }
         ],
     }
-

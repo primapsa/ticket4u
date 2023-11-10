@@ -1,4 +1,5 @@
 from django.core.paginator import Paginator
+from django.core.exceptions import ValidationError
 from rest_framework import status, permissions, generics
 from rest_framework.response import Response
 from t4uApp.serializers import *
@@ -19,9 +20,50 @@ import json
 from rest_framework.exceptions import ErrorDetail
 
 
-class ConcertList(APIView):
+class BaseView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     serializers = [ConcertClassicSerializer, ConcertPartySerializer, ConcertOpenairSerializer]
+    models = [ConcertClassic, ConcertParty, ConcertOpenair]
+
+    def convert_to_dict(self, listed_obj):
+        if listed_obj:
+            dict_obj = {}
+            for name in listed_obj:
+                if type(listed_obj[name]) is str:
+                    try:
+                        dict_obj[name] = json.loads(listed_obj[name])
+                    except:
+                        dict_obj[name] = listed_obj[name]
+                else:
+                    dict_obj[name] = listed_obj[name]
+            return dict_obj
+        return None
+
+    def get_errors(self, error_dict):
+        error_list = []
+        for field, errors in error_dict.items():
+            if isinstance(errors, list):
+                for error in errors:
+                    if isinstance(error, ErrorDetail):
+                        error_list.append({field: f"{error}"})
+            elif isinstance(errors, dict):
+                for key, error in errors.items():
+                    if isinstance(error, list):
+                        for detail in error:
+                            if isinstance(detail, ErrorDetail):
+                                error_list.append({field: f"{detail}"})
+            else:
+                error_list.append({field: "Неизвестная ошибка"})
+
+        return error_list
+
+    def get_serializer_by_type_id(self, type_id):
+        if type_id > 0:
+            return self.serializers[int(type_id) - 1]
+        return None
+
+
+class ConcertList(BaseView):
 
     def get(self, request):
         concerts = self.get_object()
@@ -29,81 +71,38 @@ class ConcertList(APIView):
         concerts = self._filter(concerts, **self._get_filters_param(request))
         total = concerts.count()
         paged = self._paginate(concerts, page["per_page"], page["page_number"])
-        serializer = ConcertsTypePlaceSingerSerializer(paged, many=True)
+        serializer = ConcertsWithRelativesSerializer(paged, many=True)
 
         return Response(self._make_output(serializer, total), status.HTTP_200_OK)
 
     @transaction.atomic
-    # def post(self, request):
-    #     serializer = ConcertsAddresSerializer(data=request.data)
-    #
-    #     if serializer.is_valid():
-    #         concerts = request.data.copy()
-    #         if not self._is_title_unique(concerts):
-    #             return Response(
-    #                 {"title": "Заголовок уже используется"}, status.HTTP_400_BAD_REQUEST
-    #             )
-    #         new_place = self._make_place(concerts)
-    #         place_serializer = PlaceSerializer(data=new_place)
-    #         if place_serializer.is_valid():
-    #             place_result = place_serializer.save()
-    #             concerts["placeId"] = place_result.pk
-    #             extra_id = self._expand_concerts(concerts)
-    #             if not extra_id:
-    #                 return Response("", status.HTTP_400_BAD_REQUEST)
-    #             concerts["extra"] = extra_id
-    #             concerts_serializer = ConcertsSerializer(data=concerts)
-    #             if concerts_serializer.is_valid():
-    #                 result_concerts = concerts_serializer.save()
-    #                 output = ConcertsTypePlaceSingerSerializer(result_concerts)
-    #                 return Response(output.data, status=status.HTTP_201_CREATED)
-    #             else:
-    #                 return Response(
-    #                     concerts_serializer.errors, status.HTTP_400_BAD_REQUEST
-    #                 )
-    #     return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
-    def post(self, request):        
-        concert_data = self._convert_to_dict(request.data)           
+    def post(self, request):
+        concert_data = self.convert_to_dict(request.data)
+        concert_data['poster'] = request.FILES.get('poster', None)
         concert_data_serializer = ConcertsSerializer(data=concert_data)
-        if not concert_data_serializer.is_valid():                         
+        if not concert_data_serializer.is_valid():
             return Response(self._get_errors(concert_data_serializer.errors), status.HTTP_400_BAD_REQUEST)
-        place_data = concert_data.get('place', {})        
+        if not self._is_title_unique(concert_data):
+            return Response({"title": "Заголовок уже используется"}, status.HTTP_400_BAD_REQUEST)
+        place_data = concert_data.get('place', {})
         place_serializer = PlaceSerializer(data=place_data)
-        if not place_serializer.is_valid():     
-            return Response(self._get_errors(place_serializer.errors), status.HTTP_400_BAD_REQUEST)       
-        concert_type_id = concert_data.get('type', None)        
+        if not place_serializer.is_valid():
+            return Response(self._get_errors(place_serializer.errors), status.HTTP_400_BAD_REQUEST)
+        concert_type_id = concert_data.get('type', None)
         if not concert_type_id:
-            return Response({'general': 'Ошибка данных!'}, status.HTTP_400_BAD_REQUEST)   
-        concert_serializer = self._get_serializer_by_type_id(concert_type_id)      
+            return Response({'general': 'Ошибка данных!'}, status.HTTP_400_BAD_REQUEST)
+        concert_serializer = self.get_serializer_by_type_id(concert_type_id)
         concert_result = concert_serializer(data=concert_data)
         if concert_result.is_valid():
-            concert = concert_result.save()            
-            output = concert_serializer(concert)            
-            return Response(output.data, status.HTTP_200_OK)     
-          
-        return Response(self._get_errors(concert_result.errors), status.HTTP_400_BAD_REQUEST)
-        
-        
-    def _convert_to_dict(self, listed_obj):
-        if listed_obj:          
-            dict_obj = {}
-            for name in listed_obj:
-                if type(listed_obj[name]) is str: 
-                    try:                
-                        dict_obj[name] = json.loads(listed_obj[name])
-                    except:
-                        dict_obj[name] = listed_obj[name]   
-                else:
-                    dict_obj[name] = listed_obj[name]                       
-            return dict_obj 
-        return None
-        
+            concert = concert_result.save()
+            output = concert_serializer(concert)
+            return Response(output.data, status.HTTP_201_CREATED)
+
+        return Response(self.get_errors(concert_result.errors), status.HTTP_400_BAD_REQUEST)
+
     def _paginate(self, obj, per_page, page):
         paginator = Paginator(obj, per_page)
         return paginator.get_page(page)
-
-    def _get_serializer_by_type_id(self, type_id):
-        return self.serializers[int(type_id) - 1]
 
     def _is_title_unique(self, concerts):
         title = concerts.get("title")
@@ -115,27 +114,9 @@ class ConcertList(APIView):
 
         return is_unique
 
-    def _expand_concerts(self, concerts):
-        extra_seralizers = [
-            [ConcertClassicSerializer, "classic"],
-            [ConcertPartySerializer, "party"],
-            [ConcertOpenairSerializer, "openair"],
-        ]
-        type_id = int(concerts["typeId"]) - 1
-        concert_extra_serializers = extra_seralizers[type_id][0]
-        concert_extra_field = extra_seralizers[type_id][1]
-        concert_extra_info = concert_extra_serializers(data=concerts)
-        if concert_extra_info.is_valid():
-            res_concert_extra_info = concert_extra_info.save()
-            fields = {concert_extra_field: res_concert_extra_info}
-            concert_extra = ConcertExtra.objects.create(**fields)
-
-            return concert_extra.pk
-        return None
-
     def get_object(self):
         try:
-            return Concerts.objects.select_related("typeId", "placeId")
+            return Concerts.objects.all().select_related('concertparty', 'concertopenair', 'concertclassic')
         except Concerts.DoesNotExist:
             return None
 
@@ -144,7 +125,7 @@ class ConcertList(APIView):
             if key == "keyword":
                 obj = obj.filter(title__iregex=f"{kwargs[key]}")
             if key == "type":
-                return obj.filter(typeId_id=kwargs[key])
+                return obj.filter(type_id=kwargs[key])
             if key == "ids":
                 ids_tuple = tuple(map(int, kwargs[key].split(",")))
                 obj = obj.filter(id__in=ids_tuple)
@@ -164,167 +145,48 @@ class ConcertList(APIView):
 
         return {"per_page": per_page, "page_number": page_number}
 
-    def _make_place(self, obj):
-        address = obj.get("address", "")
-        latitude = obj.get("latitude", "")
-        longitude = obj.get("longitude", "")
-
-        return {"address": address, "latitude": latitude, "longitude": longitude}
-
     def _make_output(self, obj, total):
         return {"data": obj.data, "total": total}
 
-    def _get_errors(self, error_dict):
-        # errors = {}        
-        # for err in err_data:
-        #     errors[err] = err_data[err][0]
-        # return errors
-        error_list = []    
-        for field, errors in error_dict.items():
-            if isinstance(errors, list):  # обрабатываем поля с прямым списком ошибок
-                for error in errors:
-                    if isinstance(error, ErrorDetail):
-                        error_list.append({field: f"{error}"})
-            elif isinstance(errors, dict):  # обрабатываем поля с вложенными ошибками
-                for key, error in errors.items():
-                    if isinstance(error, list):
-                        for detail in error:
-                            if isinstance(detail, ErrorDetail):
-                                error_list.append({field: f"{detail}"})
-            else:
-                error_list.append({field: "Неизвестная ошибка"})
-                
-        return error_list
 
+class ConcertDetail(BaseView):
 
-class ConcertDetail(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_object(self, pk, relatived=False):
+    def get_object(self, pk):
         try:
-            if relatived:
-                return Concerts.objects.select_related("typeId", "placeId").get(id=pk)
-            else:
-                return Concerts.objects.get(id=pk)
+            return Concerts.objects.all().select_related('concertparty', 'concertopenair', 'concertclassic').get(id=pk)
         except Concerts.DoesNotExist:
             return None
 
+    def _get_model_by_type_id(self, type_id, pk):
+        model = self.models[int(type_id) - 1]
+        try:
+            return model.objects.all().get(id=pk)
+        except model.DoesNotExist:
+            return None
+
     def get(self, _, pk):
-        concert = self.get_object(pk, True)
-        serializer = ConcertsTypePlaceSingerSerializer(concert)
+        concert = self.get_object(pk)
+        serializer = ConcertsWithRelativesSerializer(concert)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, pk):
-        concert = self.get_object(pk)
-
-        serializer = ConcertsUpdateSerializer(concert, data=request.data)
-        if serializer.is_valid():
-            place = self._make_place(request.data)
-            self._update_place(place, concert.placeId_id)
-            result = self._update_extra(concert, request.data)
-            if result:
-                return result
-            serializer.save()
-            concert = self.get_object(pk)
-            serializer = ConcertsTypePlaceSingerSerializer(concert)
-            return Response([serializer.data], status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        update_data = self.convert_to_dict(request.data)
+        type_id = update_data.get('type')
+        current_concert = self._get_model_by_type_id(type_id, pk)
+        concerts_serializer = self.get_serializer_by_type_id(type_id)
+        concerts = concerts_serializer(current_concert, data=update_data)
+        if concerts.is_valid():
+            saved = concerts.save()
+            saved.refresh_from_db()
+            saved.place.refresh_from_db()
+            output = ConcertsWithRelativesSerializer(saved)
+            return Response([output.data], status=status.HTTP_200_OK)
+        return Response(self.get_errors(concerts.errors), status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, _, pk):
         concert = self.get_object(pk)
         concert.delete()
         return Response("", status=status.HTTP_204_NO_CONTENT)
-
-    def _update_extra(self, current_data, extra_data):
-        extra_type_id = int(extra_data.get("typeId"))
-        concert_type = extra_type_id - 1
-        extra = [
-            {
-                "singerVoiceId": extra_data.get("singerVoiceId", ""),
-                "concertName": extra_data.get("concertName", ""),
-                "composer": extra_data.get("composer", ""),
-            },
-            {"censor": extra_data.get("censor", "")},
-            {
-                "wayHint": extra_data.get("wayHint", ""),
-                "headliner": extra_data.get("headliner", ""),
-            },
-        ]
-        extra_serializers = [
-            [ConcertClassicSerializer, ConcertClassic, "classic"],
-            [ConcertPartySerializer, ConcertParty, "party"],
-            [ConcertOpenairSerializer, ConcertOpenair, "openair"],
-        ]
-        serializer = extra_serializers[concert_type][0]
-        model = extra_serializers[concert_type][1]
-        field = extra_serializers[concert_type][2]
-        current_extra_id = getattr(current_data.extra, field + "_id")
-        target = self._get_object_by_id(model, current_extra_id)
-
-        if current_data.typeId_id != extra_type_id:
-            model_field = self._get_field_name_by_id(current_data.extra_id)
-            current_model = self._get_model_by_field(model_field, extra_serializers)
-            current_target_id = getattr(current_data.extra, model_field + "_id")
-            current_target = self._get_object_by_id(current_model, current_target_id)
-            current_target.delete()
-            create_model = serializer(data=extra[concert_type])
-            if create_model.is_valid():
-                create_model_result = create_model.save()
-                # concerts_extra = self._get_object_by_id(
-                #     ConcertExtra, current_data.extra_id
-                # )
-                # update_concerts_extra = ConcertExtraSerializer(
-                #     concerts_extra, data={field: create_model_result.pk}
-                # )
-                if update_concerts_extra.is_valid():
-                    update_concerts_extra.save()
-        else:
-            update_model = serializer(target, data=extra[concert_type])
-            if update_model.is_valid():
-                update_model.save()
-            else:
-                return Response(self._get_error(update_model.errors), status.HTTP_400_BAD_REQUEST)
-        return None
-
-    def _get_error(self, error_dict):
-        errors = {}
-        for err in error_dict:
-            errors[err] = error_dict[err][0]
-        return errors
-
-    def _get_field_name_by_id(self, id):
-        # extra_concert = ConcertExtra.objects.get(id=id)
-        fields = ["party", "openair", "classic"]
-        for field in fields:
-            if getattr(extra_concert, field) is not None:
-                return field
-        return None
-
-    def _get_model_by_field(self, field, extra):
-        for item in extra:
-            if item[2] == field:
-                return item[1]
-        return None
-
-    def _update_place(self, place_data, pk):
-        place = self._get_object_by_id(Place, pk)
-        if place:
-            place_serializer = PlaceSerializer(place, data=place_data)
-            if place_serializer.is_valid():
-                place_serializer.save()
-
-    def _make_place(self, obj):
-        address = obj.get("address", "")
-        latitude = obj.get("latitude", "")
-        longitude = obj.get("longitude", "")
-
-        return {"address": address, "latitude": latitude, "longitude": longitude}
-
-    def _get_object_by_id(self, obj, pk):
-        try:
-            return obj.objects.get(id=pk)
-        except obj.DoesNotExist:
-            return None
 
 
 class ConcertTypeList(generics.ListAPIView):

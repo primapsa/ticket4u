@@ -161,6 +161,4 @@ EMAIL_PASSWORD = "jhappmhobknkfwzx"
 
 ITEMS_PER_PAGE = 8
 DEFAULT_PAGE = 1
-DATETIME_FORMAT="%Y-%m-%d%H:%M:%S"
-L10N=False
-USE_TZ=False
+DATETIME_FORMAT = "%Y-%m-%d%H:%M:%S"
