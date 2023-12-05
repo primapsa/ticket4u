@@ -1,0 +1,26 @@
+.wrapper {
+    width: 800px;
+}
+.ticket {
+    width: 100%;
+    margin: 10px 0;
+    border: 1px solid black;
+    border-radius: 3px;
+    display: flex;
+    padding: 10px;
+    height: 220px;
+}
+
+.ticket__logo {
+    display: inline-block;
+}
+
+.ticke__image {
+    height: 200px;
+    width: 200px;
+}
+
+.ticket__details {
+    margin-left: 15px;
+    display: inline-block;
+}
