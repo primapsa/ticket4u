@@ -1,14 +1,14 @@
 from rest_framework import serializers
 from django.core.validators import FileExtensionValidator
 from t4uApp.models import (
-    Concerts,
+    Concert,
     Place,
     ConcertType,
     SingerVoice,
     Tickets,
-    ConcertParty,
-    ConcertOpenair,
-    ConcertClassic
+    Party,
+    Openair,
+    Classic
 )
 
 
@@ -30,7 +30,7 @@ class ConcertsSerializer(serializers.ModelSerializer):
     poster = serializers.FileField(use_url=False)
 
     class Meta:
-        model = Concerts
+        model = Concert
         fields = ('id', 'title', 'date', 'type', 'poster', 'desc', 'price', 'ticket', 'place')
 
 
@@ -40,7 +40,7 @@ class ConcertsWithRelativesSerializer(serializers.ModelSerializer):
     ticket_limit = serializers.SerializerMethodField()
 
     class Meta:
-        model = Concerts
+        model = Concert
         fields = '__all__'
 
     def to_representation(self, instance):
@@ -48,17 +48,17 @@ class ConcertsWithRelativesSerializer(serializers.ModelSerializer):
         concert_type = instance.type_id
 
         if concert_type == 1:
-            concert_classic_data = ConcertClassicSerializer(instance.concertclassic).data
+            concert_classic_data = ConcertClassicSerializer(instance.classic).data
             output.update({
                 'concertName': concert_classic_data.get('concertName', None),
                 'composer': concert_classic_data.get('composer', None),
                 'singerVoice': str(instance.concertclassic.singerVoice_id),
             })
         elif concert_type == 2:
-            concert_party_data = ConcertPartySerializer(instance.concertparty).data
+            concert_party_data = ConcertPartySerializer(instance.party).data
             output.update(concert_party_data)
         elif concert_type == 3:
-            concert_openair_data = ConcertOpenairSerializer(instance.concertopenair).data
+            concert_openair_data = ConcertOpenairSerializer(instance.openair).data
             output.update(concert_openair_data)
         return output
 
@@ -115,19 +115,19 @@ class SingerVoiceSerializer(serializers.ModelSerializer):
 
 class ConcertClassicSerializer(BaseConcertExtraSerializer):
     class Meta:
-        model = ConcertClassic
+        model = Classic
         fields = ConcertsSerializer.Meta.fields + ('singerVoice', 'concertName', 'composer')
 
 
 class ConcertPartySerializer(BaseConcertExtraSerializer):
     class Meta:
-        model = ConcertParty
+        model = Party
         fields = ConcertsSerializer.Meta.fields + ('censor',)
 
 
 class ConcertOpenairSerializer(BaseConcertExtraSerializer):
     class Meta:
-        model = ConcertOpenair
+        model = Openair
         fields = ConcertsSerializer.Meta.fields + ('wayHint', 'headliner')
 
 

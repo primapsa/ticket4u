@@ -16,7 +16,7 @@ class Place(models.Model):
     longitude = models.CharField(max_length=100)
 
 
-class Concerts(models.Model):
+class Concert(models.Model):
     title = models.CharField(max_length=100)
     date = models.DateTimeField(default=timezone.now)
     place = models.ForeignKey(Place, null=True, on_delete=models.SET_NULL)
@@ -32,11 +32,11 @@ class Concerts(models.Model):
         return self.title
 
 
-class ConcertParty(Concerts):
+class Party(Concert):
     censor = models.CharField(max_length=100)
 
 
-class ConcertOpenair(Concerts):
+class Openair(Concert):
     wayHint = models.CharField(max_length=100)
     headliner = models.CharField(max_length=100)
 
@@ -45,13 +45,13 @@ class SingerVoice(models.Model):
     title = models.CharField(max_length=100)
 
 
-class ConcertClassic(Concerts):
+class Classic(Concert):
     singerVoice = models.ForeignKey(SingerVoice, null=True, on_delete=models.SET_NULL)
     concertName = models.CharField(max_length=100)
     composer = models.CharField(max_length=100)
 
 
-@receiver(post_delete, sender=Concerts)
+@receiver(post_delete, sender=Concert)
 def post_save_image(sender, instance, *args, **kwargs):
     try:
         instance.poster.delete(save=False)

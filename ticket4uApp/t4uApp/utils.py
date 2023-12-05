@@ -24,9 +24,9 @@ def upload_to(instance, filename):
 
 def html_tickets(title, count):
     return f'''
-    <div style="width: 100%; margin: 10px 0; border: 1px solid black; border-radius: 3px; display: flex; padding: 10px; height: 220px">
-            <img src="https://www.freeiconspng.com/thumbs/hd-tickets/download-ticket-ticket-free-entertainment-icon-orange-ticket-design-0.png" alt="logo" height="200px" width="200px" style="display: inline-block">
-            <div style="margin-left: 15px; display: inline-block">
+    <div class="ticket">
+            <img  class="ticket__image" src="https://www.freeiconspng.com/thumbs/hd-tickets/download-ticket-ticket-free-entertainment-icon-orange-ticket-design-0.png" alt="logo" ">
+            <div class="ticket__details">
                 <h2>{title}</h2>
                 <div>Билетов: {count}</div>               
             </div>
@@ -35,11 +35,18 @@ def html_tickets(title, count):
 
 
 def make_html(body):
+
     return f'''
         <!DOCTYPE html>
         <html>
+            <head>           
+                <meta charset="UTF-8">
+                <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <link rel="stylesheet" type="text/css" href="/static/css/styles.css">
+            </head>
             <body>
-                <div style="width: 800px;">
+                <div class="wrapper">
                      {body}
                 </div>
             </body>
@@ -59,7 +66,7 @@ def email_tickets(tickets, email_to):
     msg['From'] = settings.EMAIL_ADDRESS
     msg['To'] = email_to
     msg.set_content(make_html(html), subtype='html')
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+    with smtplib.SMTP_SSL(settings.EMAIL_HOST, settings.EMAIL_PORT) as smtp:
         smtp.login(settings.EMAIL_ADDRESS, settings.EMAIL_PASSWORD)
         smtp.send_message(msg)
         return Response(status=status.HTTP_200_OK)

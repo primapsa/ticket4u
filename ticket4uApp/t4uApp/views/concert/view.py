@@ -6,13 +6,13 @@ from t4uApp.serializers import *
 from rest_framework.views import APIView
 from ticket4uApp import settings
 from t4uApp.models import (
-    Concerts,
+    Concert,
     ConcertType,
     SingerVoice,
     Place,
-    ConcertClassic,
-    ConcertOpenair,
-    ConcertParty,
+    Classic,
+    Openair,
+    Party,
 )
 from django.db import transaction
 from django.db.models import Q
@@ -23,7 +23,7 @@ from rest_framework.exceptions import ErrorDetail
 class BaseView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     serializers = [ConcertClassicSerializer, ConcertPartySerializer, ConcertOpenairSerializer]
-    models = [ConcertClassic, ConcertParty, ConcertOpenair]
+    models = [Classic, Party, Openair]
 
     def convert_to_dict(self, listed_obj):
         if listed_obj:
@@ -78,27 +78,40 @@ class ConcertList(BaseView):
     @transaction.atomic
     def post(self, request):
         concert_data = self.convert_to_dict(request.data)
+        concert_type_id = concert_data.get('type', None)
+        processed_request = self._process_request(request, concert_data)
+        if processed_request:
+            return processed_request
+        if not concert_type_id:
+            return Response({'general': 'Ошибка данных!'}, status.HTTP_400_BAD_REQUEST)
+        concert = self._process_concert(concert_type_id, concert_data)
+        if concert:
+            return Response(concert, status.HTTP_201_CREATED)
+
+        return Response(self.get_errors(concert_result.errors), status.HTTP_400_BAD_REQUEST)
+
+    def _process_request(self, request, concert_data):
         concert_data['poster'] = request.FILES.get('poster', None)
         concert_data_serializer = ConcertsSerializer(data=concert_data)
+        place_data = concert_data.get('place', {})
+        place_serializer = PlaceSerializer(data=place_data)
         if not concert_data_serializer.is_valid():
             return Response(self._get_errors(concert_data_serializer.errors), status.HTTP_400_BAD_REQUEST)
         if not self._is_title_unique(concert_data):
             return Response({"title": "Заголовок уже используется"}, status.HTTP_400_BAD_REQUEST)
-        place_data = concert_data.get('place', {})
-        place_serializer = PlaceSerializer(data=place_data)
         if not place_serializer.is_valid():
             return Response(self._get_errors(place_serializer.errors), status.HTTP_400_BAD_REQUEST)
-        concert_type_id = concert_data.get('type', None)
-        if not concert_type_id:
-            return Response({'general': 'Ошибка данных!'}, status.HTTP_400_BAD_REQUEST)
+        return None
+
+    def _process_concert(self, concert_type_id, concert_data):
         concert_serializer = self.get_serializer_by_type_id(concert_type_id)
         concert_result = concert_serializer(data=concert_data)
+        response = None
         if concert_result.is_valid():
             concert = concert_result.save()
             output = concert_serializer(concert)
-            return Response(output.data, status.HTTP_201_CREATED)
-
-        return Response(self.get_errors(concert_result.errors), status.HTTP_400_BAD_REQUEST)
+            response = output.data
+        return response
 
     def _paginate(self, obj, per_page, page):
         paginator = Paginator(obj, per_page)
@@ -108,7 +121,7 @@ class ConcertList(BaseView):
         title = concerts.get("title")
         date = concerts.get("date")
         address = concerts.get("address")
-        is_unique = not Concerts.objects.filter(
+        is_unique = not Concert.objects.filter(
             Q(title=title) & Q(date=date) & Q(place__address=address)
         ).exists()
 
@@ -116,8 +129,8 @@ class ConcertList(BaseView):
 
     def get_object(self):
         try:
-            return Concerts.objects.all().select_related('concertparty', 'concertopenair', 'concertclassic')
-        except Concerts.DoesNotExist:
+            return Concert.objects.all().select_related('party', 'openair', 'classic')
+        except Concert.DoesNotExist:
             return None
 
     def _filter(self, obj, **kwargs):
@@ -153,8 +166,8 @@ class ConcertDetail(BaseView):
 
     def get_object(self, pk):
         try:
-            return Concerts.objects.all().select_related('concertparty', 'concertopenair', 'concertclassic').get(id=pk)
-        except Concerts.DoesNotExist:
+            return Concert.objects.all().select_related('party', 'openair', 'classic').get(id=pk)
+        except Concert.DoesNotExist:
             return None
 
     def _get_model_by_type_id(self, type_id, pk):
