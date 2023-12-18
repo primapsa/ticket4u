@@ -52,7 +52,7 @@ class ConcertsWithRelativesSerializer(serializers.ModelSerializer):
             output.update({
                 'concertName': concert_classic_data.get('concertName', None),
                 'composer': concert_classic_data.get('composer', None),
-                'singerVoice': str(instance.concertclassic.singerVoice_id),
+                'singerVoice': str(instance.classic.singerVoice_id),
             })
         elif concert_type == 2:
             concert_party_data = ConcertPartySerializer(instance.party).data
