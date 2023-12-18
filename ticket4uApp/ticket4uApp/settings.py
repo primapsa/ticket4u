@@ -134,7 +134,6 @@ LANGUAGE_CODE = "ru"
 TIME_ZONE = "Europe/Moscow"
 USE_I18N = True
 USE_TZ = True
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CORS_ORIGIN_ALLOW_ALL = True
 ALLOWED_HOSTS = ["*"]
@@ -147,7 +146,6 @@ EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 EMAIL_ADDRESS = "t4u.sender@gmail.com"
 EMAIL_PASSWORD = "jhappmhobknkfwzx"
-
 ITEMS_PER_PAGE = 8
 DEFAULT_PAGE = 1
 DATETIME_FORMAT = "%Y-%m-%d%H:%M:%S"
